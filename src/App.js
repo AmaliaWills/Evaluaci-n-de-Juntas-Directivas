@@ -86,16 +86,20 @@ var ABIERTAS = [
 
 /* ══════════ TERMINOLOGÍA POR PAÍS ══════════ */
 var TERM_PRESETS = {
-  "Colombia": {organo:"Junta Directiva",presidente:"Presidente de la Junta Directiva",miembros:"miembros de la Junta Directiva",secretaria:"Secretaría de Junta",sesiones:"sesiones de Junta"},
-  "México": {organo:"Consejo de Administración",presidente:"Presidente del Consejo",miembros:"consejeros",secretaria:"Secretaría del Consejo",sesiones:"sesiones del Consejo"},
-  "Guatemala": {organo:"Consejo de Administración",presidente:"Presidente del Consejo",miembros:"consejeros",secretaria:"Secretaría del Consejo",sesiones:"sesiones del Consejo"},
-  "Perú": {organo:"Directorio",presidente:"Presidente del Directorio",miembros:"directores",secretaria:"Secretaría del Directorio",sesiones:"sesiones del Directorio"}
+  "Colombia": {organo:"Junta Directiva",presidente:"Presidente de la Junta Directiva",miembros:"miembros de la Junta Directiva",secretaria:"Secretaría de Junta",sesiones:"sesiones de Junta",art:"la",artDe:"de la",artA:"a la"},
+  "México": {organo:"Consejo de Administración",presidente:"Presidente del Consejo",miembros:"consejeros",secretaria:"Secretaría del Consejo",sesiones:"sesiones del Consejo",art:"el",artDe:"del",artA:"al"},
+  "Guatemala": {organo:"Consejo de Administración",presidente:"Presidente del Consejo",miembros:"consejeros",secretaria:"Secretaría del Consejo",sesiones:"sesiones del Consejo",art:"el",artDe:"del",artA:"al"},
+  "Perú": {organo:"Directorio",presidente:"Presidente del Directorio",miembros:"directores",secretaria:"Secretaría del Directorio",sesiones:"sesiones del Directorio",art:"el",artDe:"del",artA:"al"}
 };
-var TERM_DEFAULT = {organo:"Junta Directiva",presidente:"Presidente de la Junta Directiva",miembros:"miembros de la Junta Directiva",secretaria:"Secretaría de Junta",sesiones:"sesiones de Junta"};
+var TERM_DEFAULT = {organo:"Junta Directiva",presidente:"Presidente de la Junta Directiva",miembros:"miembros de la Junta Directiva",secretaria:"Secretaría de Junta",sesiones:"sesiones de Junta",art:"la",artDe:"de la",artA:"a la"};
 
 function applyTerms(text, terms) {
   if(!text||!terms)return text;
   var t=terms;
+  var art=t.art||"la";
+  var artDe=t.artDe||(art==="el"?"del":"de la");
+  var artA=t.artA||(art==="el"?"al":"a la");
+  var artCap=art.charAt(0).toUpperCase()+art.slice(1);
   return text
     .replace(/Presidente de la Junta Directiva/g, t.presidente)
     .replace(/Presidente de la JD/g, t.presidente)
@@ -107,8 +111,12 @@ function applyTerms(text, terms) {
     .replace(/sesiones de la Junta Directiva/g, t.sesiones)
     .replace(/sesiones de Junta/g, t.sesiones)
     .replace(/Junta Directiva/g, t.organo)
-    .replace(/la Junta/g, "la "+t.organo)
-    .replace(/La Junta/g, "La "+t.organo);
+    .replace(/a la Junta(| )/g, function(m,s){return artA+" "+t.organo+s})
+    .replace(/A la Junta(| )/g, function(m,s){return artA.charAt(0).toUpperCase()+artA.slice(1)+" "+t.organo+s})
+    .replace(/de la Junta(| )/g, function(m,s){return artDe+" "+t.organo+s})
+    .replace(/De la Junta(| )/g, function(m,s){return artDe.charAt(0).toUpperCase()+artDe.slice(1)+" "+t.organo+s})
+    .replace(/la Junta(| )/g, function(m,s){return art+" "+t.organo+s})
+    .replace(/La Junta(| )/g, function(m,s){return artCap+" "+t.organo+s});
 }
 
 var aLabels=["Sin información","Totalmente en desacuerdo","En desacuerdo","De acuerdo","Totalmente de acuerdo"];
@@ -668,133 +676,348 @@ function A7Informe(p){
       var jsPDF=window.jspdf.jsPDF;
       var doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
       var W=297;var H=210;
-      var brand=[120,35,220];var dark=[30,30,30];var gray=[100,100,100];var lgray=[200,200,200];
+      var brand=[120,35,220];var dark=[30,30,30];var gray=[100,100,100];var lgray=[180,180,180];var white=[255,255,255];
+      var colorsE=["#D2D2D2","#787878","#D2D2D2","#C8A5F0","#7823DC"];
       var co=p.co||{};var N=p.resps.length;
-      var CH_COLORS=["#D2D2D2","#787878","#D2D2D2","#C8A5F0","#7823DC"];
-      function hexToRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
-      function setFont(size,weight,color){doc.setFontSize(size);doc.setFont("helvetica",weight||"normal");doc.setTextColor(color?color[0]:dark[0],color?color[1]:dark[1],color?color[2]:dark[2])}
-      function fillRect(x,y,w,h,color){doc.setFillColor(color[0],color[1],color[2]);doc.rect(x,y,w,h,"F")}
-      function pageHeader(title,subtitle){fillRect(0,0,W,14,brand);setFont(8,"bold",[255,255,255]);doc.text("KEARNEY",10,9);setFont(7,"normal",[220,220,255]);doc.text(co.nombre||"",W-10,9,{align:"right"});setFont(11,"bold",brand);doc.text(title,10,24);if(subtitle){setFont(8,"normal",gray);doc.text(subtitle,10,30)}return subtitle?36:30}
-      function pageFooter(num){setFont(7,"normal",lgray);doc.text("Fuente: Análisis Kearney — Evaluación de Junta Directiva",10,H-5);doc.text(String(num),W-10,H-5,{align:"right"});setFont(7,"bold",lgray);doc.text("KEARNEY",W/2,H-5,{align:"center"})}
+      function hexRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
+      function fill(x,y,w,h,c){doc.setFillColor(c[0],c[1],c[2]);doc.rect(x,y,w,h,"F")}
+      function setF(size,weight,color){doc.setFontSize(size);doc.setFont("helvetica",weight||"normal");if(color)doc.setTextColor(color[0],color[1],color[2]);else doc.setTextColor(dark[0],dark[1],dark[2])}
 
-      /* PORTADA */
-      fillRect(0,0,W/2,H,[255,255,255]);fillRect(W/2,0,W/2,H,[248,247,252]);
-      doc.setFillColor(230,218,252);doc.triangle(W/2+20,20,W-20,20,W/2+20,H-20,"F");
-      doc.setFillColor(200,165,240);doc.triangle(W/2+40,40,W-20,40,W/2+40,H/2,"F");
-      setFont(26,"bold",brand);doc.text("Análisis de resultados",14,46);doc.text("del levantamiento de",14,60);doc.text("perspectivas",14,74);
-      setFont(14,"bold",dark);doc.text(co.nombre||"Empresa",14,92);setFont(11,"normal",gray);doc.text(co.anio||String(new Date().getFullYear()),14,102);
-      setFont(20,"bold",dark);doc.text("KEARNEY",14,H-12);
+      /* ─── LAYOUT HELPERS ─── */
+      /* Kearney 2-col layout: left insight column (75mm) + right data column */
+      var LEFT_W=72;var RIGHT_X=80;var RIGHT_W=W-RIGHT_X-8;
+      var FOOTER_Y=H-6;
+
+      function pageShell(pageN){
+        /* footer bar */
+        fill(0,H-9,W,9,[248,248,248]);
+        doc.setDrawColor(220,220,220);doc.setLineWidth(0.2);doc.line(0,H-9,W,H-9);
+        setF(6,"normal",lgray);
+        doc.text("Fuente: Análisis Kearney — Evaluación de Junta Directiva",8,FOOTER_Y);
+        doc.text(String(pageN),W-8,FOOTER_Y,{align:"right"});
+        setF(6,"bold",[60,60,60]);doc.text("KEARNEY",W/2,FOOTER_Y,{align:"center"});
+        /* top-right watermark */
+        setF(6,"normal",[200,200,200]);doc.text("Kearney – "+(co.nombre||""),W-4,4,{align:"right"});
+      }
+
+      function sectionHeader(secLabel,title,subtitle){
+        /* right col header */
+        setF(8,"bold",brand);doc.text(secLabel,RIGHT_X,14);
+        setF(8,"normal",gray);doc.text(title,RIGHT_X,20);
+        if(subtitle){setF(7,"normal",gray);doc.text(subtitle,RIGHT_X,25);return 30}
+        return 26;
+      }
+
+      function leftInsight(text){
+        /* big bold violet text in left column */
+        var lines=doc.splitTextToSize(text,LEFT_W-12);
+        setF(13,"bold",brand);
+        doc.text(lines,10,22);
+      }
+
+      function legend(items,x,y){
+        items.forEach(function(it,i){
+          var lx=x+i*36;
+          if(it.stripe){
+            /* hatched box */
+            fill(lx,y,7,5,[220,220,220]);
+            doc.setDrawColor(150,150,150);doc.setLineWidth(0.3);
+            for(var s=0;s<7;s+=2)doc.line(lx+s,y,lx,y+s);
+          } else {
+            fill(lx,y,7,5,hexRgb(it.c));
+          }
+          setF(6,"normal",gray);doc.text(it.l,lx+9,y+4);
+        });
+      }
+
+      function hBar(q,rowY,barH,labelW,barX,barAreaW,totalN,showAvg,colors){
+        var label=q.tema||q.label||"";
+        if(label.length>46)label=label.substring(0,44)+"...";
+        setF(7,"normal",dark);
+        doc.text(label,barX-3,rowY+barH-1.5,{align:"right",maxWidth:labelW});
+        var xPos=barX;
+        q.dist.forEach(function(count,idx){
+          if(count===0)return;
+          var segW=(count/totalN)*barAreaW;
+          fill(xPos,rowY,segW,barH,hexRgb(colors[idx]));
+          if(segW>6){
+            setF(6,"bold",idx===4?white:[50,50,50]);
+            doc.text(String(count),xPos+segW/2,rowY+barH-1.5,{align:"center"});
+          }
+          xPos+=segW;
+        });
+        if(showAvg&&q.avg>0){
+          /* avg in circle */
+          var cx=barX+barAreaW+10;var cy=rowY+barH/2;var r=4;
+          var isHighlight=q.avg>=3.5;
+          if(isHighlight){doc.setDrawColor(brand[0],brand[1],brand[2]);doc.setLineWidth(0.8);doc.circle(cx,cy,r,"S");setF(7.5,"bold",brand)}
+          else{setF(7.5,"bold",dark)}
+          doc.text(q.avg.toFixed(1),cx,cy+2.5,{align:"center"});
+        }
+      }
+
+      /* ══════════════════════ PORTADA ══════════════════════ */
+      fill(0,0,W,H,white);
+      /* right side light bg */
+      fill(W/2+10,0,W/2-10,H,[248,247,252]);
+      /* geometric K shapes */
+      doc.setFillColor(230,218,252);doc.triangle(W/2+30,15,W-10,15,W/2+30,H-15,"F");
+      doc.setFillColor(200,165,240);doc.triangle(W/2+55,35,W-10,35,W/2+55,H/2+10,"F");
+      /* title */
+      setF(26,"bold",brand);doc.text("Análisis de resultados",14,44);doc.text("del levantamiento de",14,58);doc.text("perspectivas",14,72);
+      setF(13,"bold",dark);doc.text(co.nombre||"Empresa",14,90);
+      setF(10,"normal",gray);doc.text(co.anio||String(new Date().getFullYear()),14,100);
+      setF(18,"bold",dark);doc.text("KEARNEY",14,H-10);
 
       var pageNum=2;
 
-      /* SLIDE 2: TABLA DE CONTENIDO */
+      /* ══════════════════════ TABLA DE CONTENIDO ══════════════════════ */
       (function(){
         doc.addPage();
-        fillRect(0,0,W,14,brand);
-        setFont(8,"bold",[255,255,255]);doc.text("KEARNEY",10,9);
-        setFont(7,"normal",[220,220,255]);doc.text(co.nombre||"",W-10,9,{align:"right"});
-        setFont(13,"bold",brand);doc.text("Análisis de resultados del levantamiento de perspectivas",10,26);
-        setFont(9,"normal",gray);doc.text(co.nombre||"",10,34);
+        fill(0,0,W,H,white);
+        /* left stripe */
+        fill(0,0,4,H,brand);
+        setF(14,"bold",brand);doc.text("Análisis de resultados del levantamiento de perspectivas",10,18,{maxWidth:W-20});
+        setF(9,"normal",gray);doc.text(co.nombre||"",10,26);
+        doc.setDrawColor(230,220,250);doc.setLineWidth(0.3);doc.line(0,30,W,30);
 
-        var sections=[];
+        var tocSecs=[];
         var eD2=procE(p.resps,p.sel);
         var aD2=procA(p.resps,p.sel,allAfirm);
         var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
-        if(eD2.qs.length) sections.push({titulo:"Estadios de Excelencia",sub:"Calificación promedio — "+eD2.qs.length+" dimensiones evaluadas",color:[120,35,220]});
-        if(aD2.qs.length) sections.push({titulo:"Resultados Afirmaciones",sub:"Escala de acuerdo — "+aD2.qs.length+" afirmaciones",color:[198,151,59]});
-        cD2.filter(function(c){return c.qs&&c.qs.length}).forEach(function(c){sections.push({titulo:"Comité: "+c.nombre,sub:"Promedio: "+(c.avg?c.avg.toFixed(1):"—")+" ("+c.qs.length+" dimensiones)",color:[8,145,178]})});
+        if(eD2.qs.length)tocSecs.push({t:"Estadios de Excelencia",s:"Calificación promedio — "+eD2.qs.length+" dimensiones",c:[120,35,220]});
+        if(aD2.qs.length)tocSecs.push({t:"Resultados Afirmaciones",s:"Escala de acuerdo — "+aD2.qs.length+" afirmaciones",c:[120,35,220]});
+        cD2.filter(function(c){return c.qs&&c.qs.length}).forEach(function(c){tocSecs.push({t:"Comité: "+c.nombre,s:"Promedio: "+(c.avg?c.avg.toFixed(1):"—")+" ("+c.qs.length+" items)",c:[8,145,178]})});
         var has3P=p.resps.some(function(r){return r.answers&&r.answers.abiertas&&r.answers.abiertas["3P"]&&r.answers.abiertas["3P"].trim()});
-        if(has3P) sections.push({titulo:"Perfil nuevo miembro de Junta",sub:"Respuestas abiertas — características identificadas",color:[27,158,94]});
-        var has4PC=p.resps.some(function(r){return r.answers&&r.answers.abiertas&&r.answers.abiertas["4PC"]});
-        if(has4PC) sections.push({titulo:"Preguntas críticas",sub:"Cada participante formuló 3 preguntas clave",color:[120,35,220]});
-        if(rank6.length) sections.push({titulo:"Plan de acción estratégico (6AC)",sub:"Temas prioritarios para los próximos 3 años",color:[120,35,220]});
-        if(rank5.length) sections.push({titulo:"Áreas de formación (5PA)",sub:"Conocimientos priorizados por los Directores",color:[198,151,59]});
+        if(has3P)tocSecs.push({t:"Perfil nuevo miembro",s:"Características identificadas",c:[27,158,94]});
+        if(preguntas.length)tocSecs.push({t:"Preguntas críticas",s:"3 preguntas por participante",c:[120,35,220]});
+        if(rank6.length)tocSecs.push({t:"Plan de acción estratégico",s:"Temas prioritarios — próximos 3 años",c:[120,35,220]});
+        if(rank5.length)tocSecs.push({t:"Áreas de formación",s:"Conocimientos priorizados",c:[198,151,59]});
 
-        var cols=2;var colW=(W-28)/cols;var yTOC=44;var rowH=18;
-        sections.forEach(function(s,i){
-          var col=i%cols;var row=Math.floor(i/cols);
-          var cx=10+col*(colW+8);var cy=yTOC+row*(rowH+6);
-          fillRect(cx,cy,colW,rowH,[s.color[0],s.color[1],s.color[2]]);
-          doc.setFillColor(255,255,255);doc.setDrawColor(255,255,255);
-          var alpha=0.12;doc.setFillColor(Math.round(s.color[0]+(255-s.color[0])*0.85),Math.round(s.color[1]+(255-s.color[1])*0.85),Math.round(s.color[2]+(255-s.color[2])*0.85));
-          doc.rect(cx,cy,colW,rowH,"F");
-          doc.setDrawColor(s.color[0],s.color[1],s.color[2]);doc.setLineWidth(0.5);doc.rect(cx,cy,colW,rowH,"S");
-          fillRect(cx,cy,3,rowH,[s.color[0],s.color[1],s.color[2]]);
-          setFont(8,"bold",[s.color[0],s.color[1],s.color[2]]);doc.text(s.titulo,cx+6,cy+6.5,{maxWidth:colW-10});
-          setFont(7,"normal",gray);doc.text(s.sub,cx+6,cy+13,{maxWidth:colW-10});
+        var colsT=2;var colWT=(W-24)/colsT;var yT=36;var rowHT=20;
+        tocSecs.forEach(function(s,i){
+          var col=i%colsT;var row=Math.floor(i/colsT);
+          var cx=8+col*(colWT+8);var cy=yT+row*(rowHT+5);
+          fill(cx,cy,3,rowHT,[s.c[0],s.c[1],s.c[2]]);
+          doc.setFillColor(s.c[0]+(255-s.c[0])*0.9,s.c[1]+(255-s.c[1])*0.9,s.c[2]+(255-s.c[2])*0.9);
+          doc.rect(cx+3,cy,colWT-3,rowHT,"F");
+          setF(8,"bold",[s.c[0],s.c[1],s.c[2]]);doc.text(s.t,cx+7,cy+7,{maxWidth:colWT-10});
+          setF(6.5,"normal",gray);doc.text(s.s,cx+7,cy+14,{maxWidth:colWT-10});
         });
 
-        var totN=N;var promE=procE(p.resps,p.sel).avg;var promA=procA(p.resps,p.sel,allAfirm).avg;
-        var statsY=H-30;
-        fillRect(0,statsY-2,W,H-statsY+2,[248,247,252]);
-        doc.setDrawColor(230,220,250);doc.setLineWidth(0.3);doc.line(0,statsY-2,W,statsY-2);
-        var stats=[{l:"Participantes",v:String(totN)},{l:"Promedio Estadios",v:promE?promE.toFixed(1):"—"},{l:"Promedio Afirmaciones",v:promA?promA.toFixed(1):"—"},{l:"Comités evaluados",v:String(cD2.filter(function(c){return c.qs&&c.qs.length}).length)}];
-        var sw=W/stats.length;
+        /* stats banner */
+        var statY=H-32;
+        fill(0,statY,W,23,[248,247,252]);
+        doc.setDrawColor(220,210,250);doc.setLineWidth(0.3);doc.line(0,statY,W,statY);
+        var stats=[{l:"Participantes",v:String(N)},{l:"Promedio Estadios",v:eD2.avg?eD2.avg.toFixed(1):"—"},{l:"Promedio Afirmaciones",v:aD2.avg?aD2.avg.toFixed(1):"—"},{l:"Comités evaluados",v:String(cD2.filter(function(c){return c.qs&&c.qs.length}).length)}];
         stats.forEach(function(s,i){
-          setFont(16,"bold",brand);doc.text(s.v,sw*i+sw/2,statsY+10,{align:"center"});
-          setFont(7,"normal",gray);doc.text(s.l,sw*i+sw/2,statsY+16,{align:"center"});
+          var sw=W/stats.length;
+          setF(16,"bold",brand);doc.text(s.v,sw*i+sw/2,statY+12,{align:"center"});
+          setF(6,"normal",gray);doc.text(s.l,sw*i+sw/2,statY+18,{align:"center"});
         });
-        pageFooter(pageNum);pageNum++;
+        pageShell(pageNum);pageNum++;
       })();
 
-      /* ESTADIOS */
+      /* ══════════════════════ ESTADIOS ══════════════════════ */
       var eD=procE(p.resps,p.sel);
       if(eD.qs.length>0){
-        doc.addPage();var yE=pageHeader("Estadios de Excelencia","Calificación promedio (N= "+N+")");
+        doc.addPage();fill(0,0,W,H,white);
         var sortedE=eD.qs.slice().sort(function(a,b){return b.avg-a.avg});
-        var barH=7;var barGap=3;var labelW=82;var barAreaX=labelW+10;var barAreaW=W-barAreaX-28;
-        var legX=barAreaX;var legY=yE-5;
-        [["Sin info","#D2D2D2"],["E1","#787878"],["E2","#D2D2D2"],["E3","#C8A5F0"],["E4","#7823DC"]].forEach(function(l,i){fillRect(legX+i*30,legY,8,4,hexToRgb(l[1]));setFont(6,"normal",gray);doc.text(l[0],legX+i*30+10,legY+3.5)});
-        yE+=2;
-        sortedE.forEach(function(q,qi){if(yE>H-18)return;var rowY=yE+qi*(barH+barGap);setFont(7,"normal",dark);var label=q.tema.length>40?q.tema.substring(0,38)+"...":q.tema;doc.text(label,labelW,rowY+barH-1.5,{align:"right"});var xPos=barAreaX;q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*barAreaW;fillRect(xPos,rowY,segW,barH,hexToRgb(CH_COLORS[idx]));if(segW>5){setFont(6,"bold",idx===4?[255,255,255]:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+barH-1.5,{align:"center"})}xPos+=segW});setFont(8,"bold",brand);doc.text(q.avg>0?q.avg.toFixed(1):"—",barAreaX+barAreaW+3,rowY+barH-1.5)});
-        pageFooter(pageNum);pageNum++;
+        /* left insight: show top item */
+        var topE=sortedE[0];
+        var insightE="";
+        if(topE){
+          var lvl=topE.avg>=3.5?"alto desempeño":topE.avg>=2.5?"estándares internacionales":"etapa de desarrollo";
+          insightE="Los resultados muestran que "+topE.tema.toLowerCase()+" alcanza niveles de "+lvl+" con un promedio de "+topE.avg.toFixed(1);
+        }
+        leftInsight(insightE||"Estadios de Excelencia");
+        /* legend bottom-left */
+        legend([{stripe:true,l:'Sin información'},{c:"#787878",l:"Estadio 1"},{c:"#D2D2D2",l:"Estadio 2"},{c:"#C8A5F0",l:"Estadio 3"},{c:"#7823DC",l:"Estadio 4"}],10,H-22);
+        /* right col */
+        var yE=sectionHeader("Estadios de Excelencia","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","(N= "+N+")");
+        /* col headers */
+        setF(7,"bold",gray);doc.text("Percepción promedio",RIGHT_X+RIGHT_W+2,yE-2,{align:"left"});
+        var barH=7;var barGap=3.5;var labelW=74;var barX=RIGHT_X+labelW+2;var barAreaW=RIGHT_W-labelW-18;
+        sortedE.forEach(function(q,qi){
+          if(yE+qi*(barH+barGap)>H-15)return;
+          var rowY=yE+qi*(barH+barGap);
+          hBar(q,rowY,barH,labelW,barX,barAreaW,N,true,colorsE);
+        });
+        /* Estadio zone labels */
+        var zonesE=sortedE.filter(function(q){return q.avg>=3.5});
+        if(zonesE.length){setF(7,"bold",brand);doc.text("Estadio 4: Alto Desempeño",barX+barAreaW+20,yE+zonesE.length*(barH+barGap)/2,{maxWidth:30})}
+        var zones3=sortedE.filter(function(q){return q.avg>=2.5&&q.avg<3.5});
+        if(zones3.length){setF(7,"normal",gray);doc.text("Estadio 3: Estándares Internacionales",barX+barAreaW+20,(yE+zonesE.length*(barH+barGap))+(zones3.length*(barH+barGap)/2),{maxWidth:30})}
+        pageShell(pageNum);pageNum++;
       }
 
-      /* AFIRMACIONES */
+      /* ══════════════════════ AFIRMACIONES ══════════════════════ */
       var aD=procA(p.resps,p.sel,allAfirm);
       if(aD.qs.length>0){
-        doc.addPage();var yA=pageHeader("Resultados Afirmaciones","Calificación promedio (N= "+N+")");
-        var legXA=10;var legYA=yA-5;
-        [["Sin info","#D2D2D2"],["Tot.Desac.","#787878"],["En Desac.","#D2D2D2"],["De Acuerdo","#C8A5F0"],["Tot.Acuerdo","#7823DC"]].forEach(function(l,i){fillRect(legXA+i*38,legYA,8,4,hexToRgb(l[1]));setFont(6,"normal",gray);doc.text(l[0],legXA+i*38+10,legYA+3.5)});
-        yA+=2;var sortedA=aD.qs.slice().sort(function(a,b){return b.avg-a.avg});
-        var aBarH=7;var aGap=4;var aLabelW=100;var aBarX=aLabelW+10;var aBarW=W-aBarX-28;
-        sortedA.forEach(function(q,qi){if(yA>H-18)return;var rowY=yA+qi*(aBarH+aGap);setFont(6.5,"normal",dark);var label=q.tema.length>48?q.tema.substring(0,46)+"...":q.tema;doc.text(label,aLabelW,rowY+aBarH-1.5,{align:"right"});var xPos=aBarX;q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*aBarW;fillRect(xPos,rowY,segW,aBarH,hexToRgb(CH_COLORS[idx]));if(segW>5){setFont(5.5,"bold",idx===4?[255,255,255]:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+aBarH-1.5,{align:"center"})}xPos+=segW});setFont(8,"bold",brand);doc.text(q.avg>0?q.avg.toFixed(1):"—",aBarX+aBarW+3,rowY+aBarH-1.5)});
-        pageFooter(pageNum);pageNum++;
+        doc.addPage();fill(0,0,W,H,white);
+        var sortedA=aD.qs.slice().sort(function(a,b){return b.avg-a.avg});
+        /* left insight */
+        var topA=sortedA[0];var botA=sortedA[sortedA.length-1];
+        var insightA=topA?"Las afirmaciones muestran mayor acuerdo en "+topA.tema.toLowerCase()+(botA&&botA.id!==topA.id?", mientras que "+botA.tema.toLowerCase()+" requiere atención":"")+"."
+          :"Resultados Afirmaciones";
+        leftInsight(insightA);
+        legend([{stripe:true,l:'Sin información'},{c:"#787878",l:"Tot. Desacuerdo"},{c:"#D2D2D2",l:"En Desacuerdo"},{c:"#C8A5F0",l:"De Acuerdo"},{c:"#7823DC",l:"Tot. Acuerdo"}],10,H-22);
+        /* aspecto a profundizar badge */
+        doc.setDrawColor(120,35,220);doc.setLineWidth(0.4);doc.circle(13,H-30,4,"S");
+        setF(6,"normal",gray);doc.text("Aspecto a profundizar",20,H-29);
+        var yA=sectionHeader("Resultados Afirmaciones","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
+        var aBarH=7;var aGap=4;var aLabelW=80;var aBarX=RIGHT_X+aLabelW+2;var aBarW=RIGHT_W-aLabelW-18;
+        /* number/header row */
+        setF(7,"bold",gray);doc.text("Afirmaciones",RIGHT_X,yA-2);doc.text("Respuestas (N="+N+")",aBarX,yA-2);doc.text("Percepción promedio",aBarX+aBarW+2,yA-2,{maxWidth:20});
+        sortedA.forEach(function(q,qi){
+          if(yA+qi*(aBarH+aGap)>H-18)return;
+          var rowY=yA+qi*(aBarH+aGap);
+          /* number badge */
+          fill(RIGHT_X,rowY,6,aBarH,[240,232,255]);
+          setF(6.5,"bold",brand);doc.text(String(qi+1),RIGHT_X+3,rowY+aBarH-1.5,{align:"center"});
+          /* text */
+          var txt=q.tema.length>52?q.tema.substring(0,50)+"...":q.tema;
+          setF(6.5,"normal",dark);doc.text(txt,RIGHT_X+8,rowY+aBarH-1.5,{maxWidth:aLabelW-6});
+          /* bar */
+          hBar(q,rowY,aBarH,0,aBarX,aBarW,N,true,colorsE);
+        });
+        /* scale legend at bottom */
+        var scaleY=H-13;
+        var scaleLabels=[{v:"1",l:"Estoy Totalmente
+en Desacuerdo"},{v:"2",l:"En Desacuerdo"},{v:"0",l:"No tengo
+suficiente Info."},{v:"3",l:"De Acuerdo"},{v:"4",l:"Estoy Totalmente
+de Acuerdo"}];
+        scaleLabels.forEach(function(sl,si){
+          var sx=aBarX+si*((aBarW)/5);
+          fill(sx,scaleY,10,5,hexRgb(colorsE[si===2?0:si]));
+          setF(5.5,"bold",white);doc.text(sl.v,sx+5,scaleY+3.5,{align:"center"});
+          setF(5.5,"normal",gray);doc.text(sl.l,sx+5,scaleY+10,{align:"center",maxWidth:22});
+        });
+        pageShell(pageNum);pageNum++;
       }
 
-      /* COMITÉS */
+      /* ══════════════════════ COMITÉS ══════════════════════ */
       var cD=procC(p.resps,p.comites||[],allComiteAfirm);
-      cD.forEach(function(com){
-        if(!com.qs||!com.qs.length)return;
-        doc.addPage();var yC=pageHeader("Resultados Comité: "+com.nombre,"Promedio: "+(com.avg?com.avg.toFixed(1):"—")+"  (N= "+N+")");
-        var legXC=10;var legYC=yC-5;
-        [["Sin info","#D2D2D2"],["Tot.Desac.","#787878"],["En Desac.","#D2D2D2"],["De Acuerdo","#C8A5F0"],["Tot.Acuerdo","#7823DC"]].forEach(function(l,i){fillRect(legXC+i*38,legYC,8,4,hexToRgb(l[1]));setFont(6,"normal",gray);doc.text(l[0],legXC+i*38+10,legYC+3.5)});
-        yC+=2;var cBarH=8;var cGap=4;var cLabelW=100;var cBarX=cLabelW+10;var cBarW=W-cBarX-28;
-        com.qs.forEach(function(q,qi){if(yC>H-18)return;var rowY=yC+qi*(cBarH+cGap);setFont(7,"normal",dark);var label=q.tema.length>46?q.tema.substring(0,44)+"...":q.tema;doc.text(label,cLabelW,rowY+cBarH-2,{align:"right"});var xPos=cBarX;q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*cBarW;fillRect(xPos,rowY,segW,cBarH,hexToRgb(CH_COLORS[idx]));if(segW>5){setFont(6,"bold",idx===4?[255,255,255]:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+cBarH-2,{align:"center"})}xPos+=segW});setFont(8,"bold",brand);doc.text(q.avg>0?q.avg.toFixed(1):"—",cBarX+cBarW+3,rowY+cBarH-2)});
-        pageFooter(pageNum);pageNum++;
-      });
+      if(cD.some(function(c){return c.qs&&c.qs.length})){
+        doc.addPage();fill(0,0,W,H,white);
+        var activeCom=cD.filter(function(c){return c.qs&&c.qs.length});
+        /* left insight */
+        var topCom=activeCom.sort(function(a,b){return b.avg-a.avg})[0];
+        leftInsight(topCom?"Los resultados muestran una valoración favorable del funcionamiento de los Comités, con mayor desempeño en el Comité de "+topCom.nombre+"."
+          :"Resultados Evaluación de Comités de Apoyo");
+        legend([{stripe:true,l:'Sin información'},{c:"#787878",l:"Tot. Desacuerdo"},{c:"#D2D2D2",l:"En Desacuerdo"},{c:"#C8A5F0",l:"De Acuerdo"},{c:"#7823DC",l:"Tot. Acuerdo"}],10,H-22);
+        doc.setDrawColor(120,35,220);doc.setLineWidth(0.4);doc.circle(13,H-30,4,"S");
+        setF(6,"normal",gray);doc.text("Aspecto a profundizar",20,H-29);
+        var yComH=sectionHeader("Resultados Evaluación de Comités de Apoyo","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
+        /* grid: each committee is a column */
+        var nCols=activeCom.length;var colWC=Math.min(50,(RIGHT_W-10)/nCols);
+        /* header row with committee names */
+        activeCom.forEach(function(com,ci){
+          var cx=RIGHT_X+ci*(colWC+4);
+          var isTop=com===topCom;
+          if(isTop){doc.setDrawColor(120,35,220);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);doc.rect(cx-1,yComH-4,colWC+2,H-yComH-5,"S");doc.setLineDashPattern([],0)}
+          setF(7,"bold",isTop?brand:gray);doc.text(com.nombre,cx+colWC/2,yComH,{align:"center",maxWidth:colWC-2});
+          setF(7,"bold",dark);doc.text("(N="+N+")",cx+colWC/2,yComH+6,{align:"center"});
+        });
+        /* rows = afirmaciones */
+        var allTemas=[].concat.apply([],activeCom.map(function(c){return c.qs.map(function(q){return q.tema})}));
+        var uniqueTemas=[]; allTemas.forEach(function(t){if(!uniqueTemas.includes(t))uniqueTemas.push(t)});
+        var rowHC=barH=7;var gapC=5;var startYC=yComH+14;
+        uniqueTemas.forEach(function(tema,ti){
+          var rowY=startYC+ti*(rowHC+gapC);
+          if(rowY>H-15)return;
+          setF(7,"bold",dark);doc.text(tema,RIGHT_X-2,rowY+rowHC-2,{align:"right",maxWidth:LEFT_W-12});
+          activeCom.forEach(function(com,ci){
+            var cx=RIGHT_X+ci*(colWC+4);
+            var q=com.qs.find(function(x){return x.tema===tema});
+            if(!q)return;
+            var bW=colWC-4;
+            var xPos=cx;
+            q.dist.forEach(function(count,idx){
+              if(count===0)return;
+              var segW=(count/N)*bW;
+              fill(xPos,rowY,segW,rowHC,hexRgb(colorsE[idx]));
+              if(segW>5){setF(6,"bold",idx===4?white:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+rowHC-1.5,{align:"center"})}
+              xPos+=segW;
+            });
+            if(q.avg>0){
+              var isHigh=q.avg>=3.5;
+              if(isHigh){doc.setDrawColor(brand[0],brand[1],brand[2]);doc.setLineWidth(0.6);doc.circle(cx+bW+5,rowY+rowHC/2,3.5,"S")}
+              setF(7,"bold",isHigh?brand:dark);doc.text(q.avg.toFixed(1),cx+bW+5,rowY+rowHC-1.5,{align:"center"});
+            }
+          });
+        });
+        pageShell(pageNum);pageNum++;
+      }
 
-      /* PLAN DE ACCIÓN 6AC */
+      /* ══════════════════════ PLAN DE ACCIÓN 6AC ══════════════════════ */
       if(rank6.length>0){
-        doc.addPage();var y6=pageHeader("Plan de acción para priorizar en los próximos 3 años","Resultados obtenidos – cada participante escogió 3 temas estratégicos  (N= "+N+")");
-        var maxCount6=rank6[0]?rank6[0].total:1;var barH6=7;var gap6=3;var labelW6=120;var barX6=labelW6+8;var barW6=W-barX6-50;
-        var umbralPx=(umbral/Math.max(maxCount6,1))*barW6;
-        rank6.forEach(function(item,i){if(y6>H-18)return;var rowY=y6+i*(barH6+gap6);var isH=item.total>=umbral;var barLen=(item.total/Math.max(maxCount6,1))*barW6;setFont(7,isH?"bold":"normal",isH?dark:gray);var label=item.tema.length>56?item.tema.substring(0,54)+"...":item.tema;doc.text(label,labelW6,rowY+barH6-2,{align:"right"});fillRect(barX6,rowY,barLen,barH6,isH?brand:[200,200,200]);setFont(7,"bold",isH?[255,255,255]:[100,100,100]);if(barLen>8)doc.text(String(item.total),barX6+barLen-4,rowY+barH6-2,{align:"right"});else{setFont(7,"bold",dark);doc.text(String(item.total),barX6+barLen+3,rowY+barH6-2)}});
-        doc.setDrawColor(200,35,62);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);doc.line(barX6+umbralPx,y6-4,barX6+umbralPx,y6+rank6.length*(barH6+gap6));doc.setLineDashPattern([],0);setFont(6,"bold",[200,35,62]);doc.text("Umbral: "+umbral+" de "+N,barX6+umbralPx+2,y6-1);
-        pageFooter(pageNum);pageNum++;
+        doc.addPage();fill(0,0,W,H,white);
+        var topItem6=rank6[0];
+        leftInsight(topItem6?"La priorización de los temas refleja una clara consistencia en: "+topItem6.tema.substring(0,80)+"."
+          :"Plan de acción estratégico");
+        /* legend */
+        fill(10,H-22,8,5,hexRgb("#7823DC"));setF(6,"normal",gray);doc.text("Directores",20,H-18);
+        fill(10,H-15,8,5,hexRgb("#C8A5F0"));doc.text("Alta Gerencia",20,H-11);
+        /* umbral marker */
+        setF(6,"bold",[200,35,62]);doc.text("▲ Umbral: Supera el 50% de los participantes (N)",10,H-5);
+        var y6=sectionHeader("Plan de acción para priorizar en los próximos 3 años","Resultados obtenidos – cada participante escogió 3 temas estratégicos","(N= "+N+")");
+        var maxC6=rank6[0]?rank6[0].total:1;var bH6=6;var g6=2.5;var lW6=105;var bX6=RIGHT_X+lW6+2;var bW6=RIGHT_W-lW6-22;
+        var umbPx6=(umbral/Math.max(maxC6,1))*bW6;
+        rank6.forEach(function(item,i){
+          if(y6+i*(bH6+g6)>H-15)return;
+          var rowY=y6+i*(bH6+g6);
+          var isH=item.total>=umbral;
+          var label=item.tema.length>62?item.tema.substring(0,60)+"...":item.tema;
+          setF(7,isH?"bold":"normal",isH?dark:gray);
+          doc.text(label,bX6-3,rowY+bH6-1.5,{align:"right",maxWidth:lW6});
+          fill(bX6,rowY,(item.total/Math.max(maxC6,1))*bW6,bH6,isH?brand:[200,200,200]);
+          setF(7,"bold",isH?white:[120,120,120]);
+          var barLen=(item.total/Math.max(maxC6,1))*bW6;
+          if(barLen>8)doc.text(String(item.total),bX6+barLen-4,rowY+bH6-1.5,{align:"right"});
+          else{setF(7,"bold",dark);doc.text(String(item.total),bX6+barLen+4,rowY+bH6-1.5)}
+        });
+        /* umbral line */
+        doc.setDrawColor(200,35,62);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);
+        doc.line(bX6+umbPx6,y6-4,bX6+umbPx6,y6+rank6.length*(bH6+g6));
+        doc.setLineDashPattern([],0);
+        setF(5.5,"bold",[200,35,62]);doc.text("Umbral: "+umbral+" de "+N,bX6+umbPx6+2,y6-1);
+        pageShell(pageNum);pageNum++;
       }
 
-      /* PLAN DE FORMACIÓN 5PA */
+      /* ══════════════════════ ÁREAS DE FORMACIÓN 5PA ══════════════════════ */
       if(rank5.length>0){
-        doc.addPage();var y5=pageHeader("Áreas de formación para Directores","Resultados obtenidos – cada participante escogió 3 áreas de formación  (N= "+N+")");
-        var maxCount5=rank5[0]?rank5[0].total:1;var barH5=7;var gap5=3;var labelW5=120;var barX5=labelW5+8;var barW5=W-barX5-50;
-        var umbralPx5=(umbral/Math.max(maxCount5,1))*barW5;
-        rank5.forEach(function(item,i){if(y5>H-18)return;var rowY=y5+i*(barH5+gap5);var isH=item.total>=umbral;var barLen=(item.total/Math.max(maxCount5,1))*barW5;setFont(7,isH?"bold":"normal",isH?dark:gray);var label=item.tema.length>56?item.tema.substring(0,54)+"...":item.tema;doc.text(label,labelW5,rowY+barH5-2,{align:"right"});fillRect(barX5,rowY,barLen,barH5,isH?brand:[200,200,200]);setFont(7,"bold",isH?[255,255,255]:[100,100,100]);if(barLen>8)doc.text(String(item.total),barX5+barLen-4,rowY+barH5-2,{align:"right"});else{setFont(7,"bold",dark);doc.text(String(item.total),barX5+barLen+3,rowY+barH5-2)}});
-        doc.setDrawColor(200,35,62);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);doc.line(barX5+umbralPx5,y5-4,barX5+umbralPx5,y5+rank5.length*(barH5+gap5));doc.setLineDashPattern([],0);setFont(6,"bold",[200,35,62]);doc.text("Umbral: "+umbral+" de "+N,barX5+umbralPx5+2,y5-1);
-        pageFooter(pageNum);pageNum++;
+        doc.addPage();fill(0,0,W,H,white);
+        var topItem5=rank5[0];
+        leftInsight(topItem5?"Las áreas prioritarias de formación se concentran en: "+topItem5.tema.substring(0,80)+"."
+          :"Áreas de formación para Directores");
+        fill(10,H-22,8,5,hexRgb("#7823DC"));setF(6,"normal",gray);doc.text("Directores",20,H-18);
+        fill(10,H-15,8,5,hexRgb("#C8A5F0"));doc.text("Alta Gerencia",20,H-11);
+        setF(6,"bold",[200,35,62]);doc.text("▲ Umbral: Supera el 50% de los participantes (N)",10,H-5);
+        var y5=sectionHeader("Áreas de formación para Directores","Resultados obtenidos – cada participante escogió 3 áreas de formación","(N= "+N+")");
+        var maxC5=rank5[0]?rank5[0].total:1;var bH5=6;var g5=2.5;var lW5=105;var bX5=RIGHT_X+lW5+2;var bW5=RIGHT_W-lW5-22;
+        var umbPx5=(umbral/Math.max(maxC5,1))*bW5;
+        rank5.forEach(function(item,i){
+          if(y5+i*(bH5+g5)>H-15)return;
+          var rowY=y5+i*(bH5+g5);
+          var isH=item.total>=umbral;
+          var label=item.tema.length>62?item.tema.substring(0,60)+"...":item.tema;
+          setF(7,isH?"bold":"normal",isH?dark:gray);
+          doc.text(label,bX5-3,rowY+bH5-1.5,{align:"right",maxWidth:lW5});
+          fill(bX5,rowY,(item.total/Math.max(maxC5,1))*bW5,bH5,isH?brand:[200,200,200]);
+          setF(7,"bold",isH?white:[120,120,120]);
+          var barLen5=(item.total/Math.max(maxC5,1))*bW5;
+          if(barLen5>8)doc.text(String(item.total),bX5+barLen5-4,rowY+bH5-1.5,{align:"right"});
+          else{setF(7,"bold",dark);doc.text(String(item.total),bX5+barLen5+4,rowY+bH5-1.5)}
+        });
+        doc.setDrawColor(200,35,62);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);
+        doc.line(bX5+umbPx5,y5-4,bX5+umbPx5,y5+rank5.length*(bH5+g5));
+        doc.setLineDashPattern([],0);
+        setF(5.5,"bold",[200,35,62]);doc.text("Umbral: "+umbral+" de "+N,bX5+umbPx5+2,y5-1);
+        pageShell(pageNum);pageNum++;
       }
 
-      /* PERFIL NUEVO MIEMBRO (3P) */
+      /* ══════════════════════ PERFIL NUEVO MIEMBRO 3P ══════════════════════ */
       (function(){
         var raw3P=[];
         p.resps.forEach(function(r){
@@ -802,65 +1025,80 @@ function A7Informe(p){
           if(val&&typeof val==="string"&&val.trim()) raw3P.push({texto:val.trim(),autor:r.respondent?r.respondent.nombre:"Anónimo"});
         });
         if(!raw3P.length)return;
-        doc.addPage();
-        var yP3=pageHeader("Perfil, experiencia y/o capacidades de un nuevo miembro de Junta","Resultados obtenidos – Características identificadas  (N= "+N+")");
-        var cols=2;var colW=(W-28)/cols;var marginL=10;
+        doc.addPage();fill(0,0,W,H,white);
+        leftInsight("Los encuestados muestran mayor interés por perfiles que combinan conocimiento de industria, capacidades financieras y trayectoria estratégica.");
+        var y3=sectionHeader("Perfil, experiencia y/o capacidades de un nuevo miembro","Resultados obtenidos – Características identificadas","(N= "+N+")");
+        var cols3=2;var colW3=(RIGHT_W-6)/cols3;
         raw3P.forEach(function(item,i){
-          var col=i%cols;var curY;
-          if(col===0){
-            if(i===0){curY=yP3}
-            else{curY=yP3+(Math.floor(i/cols))*28;}
-          } else {
-            curY=yP3+(Math.floor(i/cols))*28;
-          }
-          if(curY>H-20)return;
-          var cx=marginL+col*(colW+8);
-          fillRect(cx,curY,colW,24,[248,247,252]);
-          doc.setDrawColor(200,200,200);doc.setLineWidth(0.2);doc.rect(cx,curY,colW,24,"S");
-          fillRect(cx,curY,2,24,[120,35,220]);
-          var lines=doc.splitTextToSize(item.texto,colW-12);
-          setFont(7.5,"normal",dark);
-          doc.text(lines.slice(0,3),cx+5,curY+6);
-          setFont(7,"normal",gray);
-          doc.text("— "+item.autor,cx+5,curY+20);
+          var col=i%cols3;var row=Math.floor(i/cols3);
+          var rowY=y3+row*30;
+          if(rowY>H-20)return;
+          var cx=RIGHT_X+col*(colW3+6);
+          fill(cx,rowY,colW3,26,[248,247,252]);
+          doc.setDrawColor(220,220,220);doc.setLineWidth(0.2);doc.rect(cx,rowY,colW3,26,"S");
+          fill(cx,rowY,2,26,brand);
+          var lines=doc.splitTextToSize(item.texto,colW3-10);
+          setF(7.5,"normal",dark);doc.text(lines.slice(0,3),cx+5,rowY+7);
+          setF(6.5,"normal",gray);doc.text("— "+item.autor,cx+5,rowY+22);
         });
-        pageFooter(pageNum);pageNum++;
+        pageShell(pageNum);pageNum++;
       })();
 
-      /* PREGUNTAS CRÍTICAS */
+      /* ══════════════════════ PREGUNTAS CRÍTICAS 4PC ══════════════════════ */
       var famNames=familias.filter(function(f){return f&&f.trim()});
-      var sinFamilia=preguntas.filter(function(q){return!q.familia||!q.familia.trim()});
+      var sinFam=preguntas.filter(function(q){return!q.familia||!q.familia.trim()});
       var groups=[];
       famNames.forEach(function(f){var qs=preguntas.filter(function(q){return q.familia===f});if(qs.length)groups.push({nombre:f,preguntas:qs})});
-      if(sinFamilia.length)groups.push({nombre:null,preguntas:sinFamilia});
+      if(sinFam.length)groups.push({nombre:null,preguntas:sinFam});
       if(preguntas.length>0){
-        var PREGS_PER_PAGE=2;var pageGroups=[];var cur=[];
-        groups.forEach(function(g){cur.push(g);if(cur.length>=PREGS_PER_PAGE){pageGroups.push(cur);cur=[]}});
-        if(cur.length)pageGroups.push(cur);
-        pageGroups.forEach(function(pg){
-          doc.addPage();var yP=pageHeader("Preguntas críticas o clave para abordar en la Junta Directiva","Resultados obtenidos – cada participante planteó 3 preguntas  (N= "+N+")");
-          var colW=(W-24)/pg.length;
+        var PREGS_PER_PAGE=2;var pageGroups=[];var curG=[];
+        groups.forEach(function(g){curG.push(g);if(curG.length>=PREGS_PER_PAGE){pageGroups.push(curG);curG=[]}});
+        if(curG.length)pageGroups.push(curG);
+        pageGroups.forEach(function(pg,pgi){
+          doc.addPage();fill(0,0,W,H,white);
+          var partLabel="("+(pgi+1)+"/"+pageGroups.length+")";
+          var yP=sectionHeader("Preguntas críticas o clave para abordar en la Junta Directiva","Resultados obtenidos – cada participante planteó 3 preguntas  (N= "+N+")  "+partLabel,"");
+          var colWP=(RIGHT_W-6)/pg.length;
           pg.forEach(function(grp,gi){
-            var colX=10+gi*colW;
+            var colX=RIGHT_X+gi*(colWP+6);
+            var yPI=yP+2;
             if(grp.nombre){
-              fillRect(colX,yP,colW-4,8,[240,230,255]);setFont(8,"bold",brand);doc.text(grp.nombre,colX+4,yP+5.5,{maxWidth:colW-10});var yPI=yP+11;
-              grp.preguntas.forEach(function(q,qi){if(yPI>H-14)return;var lines=doc.splitTextToSize((qi+1)+". "+q.texto,colW-8);setFont(7.5,"normal",dark);doc.text(lines,colX+4,yPI);yPI+=lines.length*4+3;doc.setDrawColor(220,210,250);doc.setLineWidth(0.2);doc.line(colX+4,yPI-1,colX+colW-6,yPI-1);yPI+=1});
-            } else {
-              var yPI2=yP+2;grp.preguntas.forEach(function(q,qi){if(yPI2>H-14)return;var lines=doc.splitTextToSize((qi+1)+". "+q.texto,colW-8);setFont(7.5,"normal",dark);doc.text(lines,colX+2,yPI2);yPI2+=lines.length*4+4});
+              fill(colX,yPI-1,colWP,8,[240,232,255]);
+              setF(7.5,"bold",brand);doc.text(grp.nombre,colX+4,yPI+5,{maxWidth:colWP-8});
+              yPI+=12;
             }
+            grp.preguntas.forEach(function(q,qi){
+              if(yPI>H-14)return;
+              /* card */
+              fill(colX,yPI,colWP-2,24,[250,250,252]);
+              doc.setDrawColor(220,215,240);doc.setLineWidth(0.2);doc.rect(colX,yPI,colWP-2,24,"S");
+              var lines=doc.splitTextToSize((qi+1)+". "+q.texto,colWP-10);
+              setF(7,"normal",dark);doc.text(lines.slice(0,4),colX+4,yPI+6);
+              yPI+=28;
+            });
           });
-          pageFooter(pageNum);pageNum++;
+          pageShell(pageNum);pageNum++;
         });
       }
 
-      /* CIERRE */
-      doc.addPage();fillRect(0,0,W/2,H,[255,255,255]);fillRect(W/2,0,W/2,H,[248,247,252]);
-      doc.setFillColor(230,218,252);doc.triangle(W/2+20,20,W-20,20,W/2+20,H-20,"F");doc.setFillColor(200,165,240);doc.triangle(W/2+40,40,W-20,40,W/2+40,H/2,"F");
-      setFont(22,"bold",brand);doc.text("Thank you",14,28);
+      /* ══════════════════════ CIERRE ══════════════════════ */
+      doc.addPage();fill(0,0,W,H,white);
+      fill(W/2+10,0,W/2-10,H,[248,247,252]);
+      doc.setFillColor(230,218,252);doc.triangle(W/2+30,15,W-10,15,W/2+30,H-15,"F");
+      doc.setFillColor(200,165,240);doc.triangle(W/2+55,35,W-10,35,W/2+55,H/2+10,"F");
+      setF(20,"bold",brand);doc.text("Thank you",14,22);
       var equipo=co.equipo?co.equipo.split(",").map(function(s){return s.trim()}).filter(Boolean):[];
-      var yTeam=46;
-      equipo.forEach(function(nombre,i){var col=i%2;var row=Math.floor(i/2);var tx=14+col*100;var ty=yTeam+row*28;setFont(9,"bold",dark);doc.text(nombre,tx,ty);setFont(8,"normal",gray);doc.text("Equipo Kearney",tx,ty+6)});
-      setFont(8,"normal",gray);doc.text("Kearney is a leading global management consulting firm.",14,H-28,{maxWidth:W/2-20});doc.text("www.kearney.com",14,H-18);setFont(18,"bold",dark);doc.text("KEARNEY",14,H-10);
+      var yTeam=36;
+      equipo.forEach(function(nombre,i){
+        var col=i%2;var row=Math.floor(i/2);
+        var tx=14+col*110;var ty=yTeam+row*24;
+        setF(9,"bold",dark);doc.text(nombre,tx,ty);
+        setF(8,"normal",gray);doc.text("Equipo Kearney",tx,ty+6);
+      });
+      setF(8,"normal",gray);doc.text("Kearney is a leading global management consulting firm. For nearly 100 years,",14,H-28,{maxWidth:W/2-20});
+      doc.text("we have been a trusted advisor to C-suites, government bodies, and nonprofits.",14,H-22,{maxWidth:W/2-20});
+      setF(8,"bold",dark);doc.text("www.kearney.com",14,H-14);
+      setF(18,"bold",dark);doc.text("KEARNEY",14,H-6);
 
       var filename="Informe_JD_"+(co.nombre||"Evaluacion").replace(/[^a-zA-Z0-9]/g,"_")+"_"+(co.anio||"")+".pdf";
       doc.save(filename);setGenerating(false);
