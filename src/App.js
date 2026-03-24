@@ -83,6 +83,34 @@ var ABIERTAS = [
   {id:"6AC",sec:"Plan de acción",tema:"Plan de acción estratégico",pregunta:"Seleccione los tres (3) temas estratégicos y/o retos que usted considera de mayor relevancia para incluir en el plan anual de la Junta Directiva para los próximos tres (3) años:",tipo:"choose3"}
 ];
 
+
+/* ══════════ TERMINOLOGÍA POR PAÍS ══════════ */
+var TERM_PRESETS = {
+  "Colombia": {organo:"Junta Directiva",presidente:"Presidente de la Junta Directiva",miembros:"miembros de la Junta Directiva",secretaria:"Secretaría de Junta",sesiones:"sesiones de Junta"},
+  "México": {organo:"Consejo de Administración",presidente:"Presidente del Consejo",miembros:"consejeros",secretaria:"Secretaría del Consejo",sesiones:"sesiones del Consejo"},
+  "Guatemala": {organo:"Consejo de Administración",presidente:"Presidente del Consejo",miembros:"consejeros",secretaria:"Secretaría del Consejo",sesiones:"sesiones del Consejo"},
+  "Perú": {organo:"Directorio",presidente:"Presidente del Directorio",miembros:"directores",secretaria:"Secretaría del Directorio",sesiones:"sesiones del Directorio"}
+};
+var TERM_DEFAULT = {organo:"Junta Directiva",presidente:"Presidente de la Junta Directiva",miembros:"miembros de la Junta Directiva",secretaria:"Secretaría de Junta",sesiones:"sesiones de Junta"};
+
+function applyTerms(text, terms) {
+  if(!text||!terms)return text;
+  var t=terms;
+  return text
+    .replace(/Presidente de la Junta Directiva/g, t.presidente)
+    .replace(/Presidente de la JD/g, t.presidente)
+    .replace(/Presidente de la Junta/g, t.presidente)
+    .replace(/miembros de la Junta Directiva/g, t.miembros)
+    .replace(/miembros de Junta/g, t.miembros)
+    .replace(/Miembros de Junta/g, t.miembros.charAt(0).toUpperCase()+t.miembros.slice(1))
+    .replace(/Secretaría de Junta/g, t.secretaria)
+    .replace(/sesiones de la Junta Directiva/g, t.sesiones)
+    .replace(/sesiones de Junta/g, t.sesiones)
+    .replace(/Junta Directiva/g, t.organo)
+    .replace(/la Junta/g, "la "+t.organo)
+    .replace(/La Junta/g, "La "+t.organo);
+}
+
 var aLabels=["Sin información","Totalmente en desacuerdo","En desacuerdo","De acuerdo","Totalmente de acuerdo"];
 var EMAILJS_SERVICE="YOUR_SERVICE_ID";
 var EMAILJS_TEMPLATE="YOUR_TEMPLATE_ID";
@@ -230,7 +258,7 @@ function AdminDashboard(p){
 /* === ADMIN CREATE === */
 function AdminCreate(p){
   var _st=useState(0);var step=_st[0];var setStep=_st[1];
-  var _co=useState({nombre:"",pais:"",sector:"",anio:"",equipo:""});var co=_co[0];var setCo=_co[1];
+  var _co=useState({nombre:"",pais:"",sector:"",anio:"",equipo:"",terminologia:Object.assign({},TERM_DEFAULT)});var co=_co[0];var setCo=_co[1];
   var _sel=useState({estadios:[],afirmaciones:[],abiertas:[]});var sel=_sel[0];var setSel=_sel[1];
   var _mand=useState({});var mandatory=_mand[0];var setMandatory=_mand[1];
   var _ca=useState([]);var customAfirm=_ca[0];var setCustomAfirm=_ca[1];
@@ -242,7 +270,7 @@ function AdminCreate(p){
 
   function generate(){
     var id="ev"+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
-    var payload={id:id,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas};
+    var payload={id:id,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT};
     supabase.from("evaluations").insert(payload).then(function(res){
       if(!res.error){p.onDone(Object.assign({},payload,{at:new Date().toISOString()}))}
       else{console.error("Supabase error:",JSON.stringify(res.error));alert("Error: "+res.error.message)}
@@ -278,9 +306,45 @@ function AdminManage(p){
 }
 
 /* ═══ ADMIN STEP 0: EMPRESA ═══ */
-function A0(p){var co=p.co;var ok=co.nombre&&co.pais&&co.anio;
-  return(<div style={{maxWidth:520,margin:"40px auto"}}><div style={{marginBottom:28}}><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 6px"}}>Caracterización de la Empresa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>Configure los datos de la organización a evaluar</p></div>
-    <Cd>{[{k:"nombre",l:"NOMBRE DE LA EMPRESA",p:"Empresa X S.A.",req:true},{k:"pais",l:"PAÍS",p:"Colombia",req:true},{k:"sector",l:"SECTOR",p:"Energía, Financiero"},{k:"anio",l:"AÑO DE EVALUACIÓN",p:"2026",req:true},{k:"equipo",l:"EQUIPO CONSULTOR",p:"Eulalia Sanín, Gloria Arango"}].map(function(f){return <div key={f.k} style={{marginBottom:18}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>{f.l}{f.req?" *":""}</label><input value={co[f.k]||""} onChange={function(e){p.setCo(Object.assign({},co,{[f.k]:e.target.value}))}} placeholder={f.p} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray900,fontSize:15,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}<button onClick={p.go} disabled={!ok} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:ok?T.brand:T.gray200,color:ok?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",fontFamily:T.fontBody}}>Continuar</button></Cd></div>);
+function A0(p){
+  var co=p.co;var ok=co.nombre&&co.pais&&co.anio;
+  function handlePaisChange(pais){
+    var preset=TERM_PRESETS[pais]||TERM_DEFAULT;
+    p.setCo(Object.assign({},co,{pais:pais,terminologia:Object.assign({},preset)}));
+  }
+  function handleTermChange(key,val){
+    var t=Object.assign({},co.terminologia||TERM_DEFAULT);
+    t[key]=val;
+    p.setCo(Object.assign({},co,{terminologia:t}));
+  }
+  var term=co.terminologia||TERM_DEFAULT;
+  return(<div style={{maxWidth:560,margin:"40px auto"}}>
+    <div style={{marginBottom:28}}><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 6px"}}>Caracterización de la Empresa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>Configure los datos de la organización a evaluar</p></div>
+    <Cd style={{marginBottom:16}}>
+      {[{k:"nombre",l:"NOMBRE DE LA EMPRESA",p:"Empresa X S.A.",req:true},{k:"sector",l:"SECTOR",p:"Energía, Financiero"},{k:"anio",l:"AÑO DE EVALUACIÓN",p:"2026",req:true},{k:"equipo",l:"EQUIPO CONSULTOR",p:"Eulalia Sanín, Gloria Arango"}].map(function(f){return <div key={f.k} style={{marginBottom:18}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>{f.l}{f.req?" *":""}</label><input value={co[f.k]||""} onChange={function(e){p.setCo(Object.assign({},co,{[f.k]:e.target.value}))}} placeholder={f.p} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray900,fontSize:15,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
+      <div style={{marginBottom:18}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>PAÍS *</label>
+        <select value={co.pais||""} onChange={function(e){handlePaisChange(e.target.value)}} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:co.pais?T.gray900:T.gray400,fontSize:15,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}}>
+          <option value="">Seleccione un país...</option>
+          {["Colombia","México","Guatemala","Perú","Chile","Argentina","Ecuador","Brasil","Bolivia","Venezuela","Costa Rica","Panamá","Honduras","El Salvador","Nicaragua","República Dominicana","Paraguay","Uruguay","Otro"].map(function(px){return <option key={px} value={px}>{px}</option>})}
+        </select>
+      </div>
+      <button onClick={p.go} disabled={!ok} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:ok?T.brand:T.gray200,color:ok?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",fontFamily:T.fontBody}}>Continuar</button>
+    </Cd>
+    <Cd style={{borderLeft:"4px solid "+T.brand,background:"rgba(120,35,220,0.02)"}}>
+      <div style={{fontSize:13,fontWeight:600,color:T.brand,marginBottom:4}}>Terminología del órgano de gobierno</div>
+      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Se precarga según el país seleccionado. Puedes editarla si la empresa usa términos distintos.</p>
+      {[
+        {k:"organo",l:"NOMBRE DEL ÓRGANO",p:"Junta Directiva"},
+        {k:"presidente",l:"PRESIDENTE DEL ÓRGANO",p:"Presidente de la Junta Directiva"},
+        {k:"miembros",l:"MIEMBROS (en minúscula)",p:"miembros de la Junta Directiva"},
+        {k:"secretaria",l:"SECRETARÍA",p:"Secretaría de Junta"},
+        {k:"sesiones",l:"SESIONES (en minúscula)",p:"sesiones de Junta"}
+      ].map(function(f){return <div key={f.k} style={{marginBottom:12}}>
+        <label style={{fontSize:10,fontWeight:600,color:T.gray500,display:"block",marginBottom:4,letterSpacing:0.8}}>{f.l}</label>
+        <input value={term[f.k]||""} onChange={function(e){handleTermChange(f.k,e.target.value)}} placeholder={f.p} style={{width:"100%",padding:"10px 14px",borderRadius:7,border:"1px solid "+T.gray200,fontSize:13,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/>
+      </div>})}
+    </Cd>
+  </div>);
 }
 
 /* ═══ ADMIN STEP 1: PREGUNTAS ═══ */
@@ -944,6 +1008,7 @@ function EvalPanel(){
   }
 
   var secs=[];
+  var evalTerms=evalData&&evalData.terminologia?evalData.terminologia:TERM_DEFAULT;
   if(evalData){
     var allAfirm=AFIRMACIONES.concat(evalData.custom_afirmaciones||[]);
     var allComiteAfirm=COMITE_AFIRMACIONES_STD.concat(evalData.custom_comite_afirmaciones||[]);
@@ -985,15 +1050,15 @@ function EvalPanel(){
           <div style={{display:"flex",gap:4,marginBottom:16,overflowX:"auto",paddingBottom:4}}>{secs.map(function(s,i){return <div key={s.key} onClick={function(){setSi(i);setQi(0)}} style={{padding:"8px 14px",borderRadius:8,background:i===si?T.white:T.offWhite,border:"2px solid "+(i===si?s.color:T.gray200),cursor:"pointer",textAlign:"center",boxShadow:i===si?T.shadow:"none",flexShrink:0}}><div style={{fontSize:11,fontWeight:600,color:i===si?s.color:T.gray500,whiteSpace:"nowrap"}}>{s.label}</div></div>})}</div>
           <div style={{fontSize:13,color:T.gray400,marginBottom:10}}>Pregunta {qi+1} de {tot}{isMand?<span style={{color:T.red,fontWeight:600,marginLeft:8}}>* Obligatoria</span>:""}</div>
           <Cd style={{marginBottom:16,minHeight:280}}>
-            <h2 style={{fontFamily:T.font,fontSize:20,fontWeight:400,margin:"0 0 20px",lineHeight:1.3}}>{q.tema||q.pregunta}</h2>
+            <h2 style={{fontFamily:T.font,fontSize:20,fontWeight:400,margin:"0 0 20px",lineHeight:1.3}}>{applyTerms(q.tema||q.pregunta,evalTerms)}</h2>
 
             {sec.key==="estadios"&&<div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                 {[
-                  {v:1,l:"Estadio 1 — Etapa Inicial",c:T.e1,t:q.e1},
-                  {v:2,l:"Estadio 2 — Cumplimiento Local",c:T.e2,t:q.e2},
-                  {v:3,l:"Estadio 3 — Estándares Internacionales",c:T.e3,t:q.e3},
-                  {v:4,l:"Estadio 4 — Desempeño Superior",c:T.e4,t:q.e4},
+                  {v:1,l:"Estadio 1 — Etapa Inicial",c:T.e1,t:applyTerms(q.e1,evalTerms)},
+                  {v:2,l:"Estadio 2 — Cumplimiento Local",c:T.e2,t:applyTerms(q.e2,evalTerms)},
+                  {v:3,l:"Estadio 3 — Estándares Internacionales",c:T.e3,t:applyTerms(q.e3,evalTerms)},
+                  {v:4,l:"Estadio 4 — Desempeño Superior",c:T.e4,t:applyTerms(q.e4,evalTerms)},
                   {v:0,l:"No tengo suficiente información",c:T.e0,t:null}
                 ].map(function(o){
                   var on=curVal===o.v;
@@ -1013,14 +1078,14 @@ function EvalPanel(){
               <ComplementBox value={ans.complements[q.id]} onChange={function(v){setComplement(q.id,v)}}/>
             </div>}
 
-            {sec.key==="afirmaciones"&&<div><div style={{padding:"14px 18px",background:T.offWhite,borderRadius:8,borderLeft:"3px solid "+T.gold,marginBottom:12}}><p style={{fontSize:14,color:T.gray700,lineHeight:1.6,margin:0}}>{q.texto}</p></div><LikertHorizontal value={curVal} onChange={function(v){sa("afirmaciones",q.id,v)}}/><ComplementBox value={ans.complements[q.id]} onChange={function(v){setComplement(q.id,v)}}/></div>}
+            {sec.key==="afirmaciones"&&<div><div style={{padding:"14px 18px",background:T.offWhite,borderRadius:8,borderLeft:"3px solid "+T.gold,marginBottom:12}}><p style={{fontSize:14,color:T.gray700,lineHeight:1.6,margin:0}}>{applyTerms(q.texto,evalTerms)}</p></div><LikertHorizontal value={curVal} onChange={function(v){sa("afirmaciones",q.id,v)}}/><ComplementBox value={ans.complements[q.id]} onChange={function(v){setComplement(q.id,v)}}/></div>}
 
-            {sec.isComite&&<div><div style={{padding:"14px 18px",background:"rgba(8,145,178,0.04)",borderRadius:8,borderLeft:"3px solid "+T.teal,marginBottom:12}}><p style={{fontSize:14,color:T.gray700,lineHeight:1.6,margin:0}}>{q.texto}</p></div><LikertHorizontal value={curVal} onChange={function(v){sa("comites",q.id,v)}}/><ComplementBox value={ans.complements[q.id]} onChange={function(v){setComplement(q.id,v)}}/></div>}
+            {sec.isComite&&<div><div style={{padding:"14px 18px",background:"rgba(8,145,178,0.04)",borderRadius:8,borderLeft:"3px solid "+T.teal,marginBottom:12}}><p style={{fontSize:14,color:T.gray700,lineHeight:1.6,margin:0}}>{applyTerms(q.texto,evalTerms)}</p></div><LikertHorizontal value={curVal} onChange={function(v){sa("comites",q.id,v)}}/><ComplementBox value={ans.complements[q.id]} onChange={function(v){setComplement(q.id,v)}}/></div>}
 
             {(sec.key==="abiertas"||sec.isComiteOpen)&&(function(){
               var qObj=sec.isComiteOpen?ABIERTAS_COMITE.find(function(x){return x.id===q.id}):ABIERTAS.find(function(x){return x.id===q.id});
               var tipo=qObj?qObj.tipo:"texto";
-              var pregText=qObj?qObj.pregunta:q.tema;
+              var pregText=applyTerms(qObj?qObj.pregunta:q.tema,evalTerms);
               return(<div>
                 <div style={{padding:"14px 18px",background:T.offWhite,borderRadius:8,borderLeft:"3px solid "+T.green,marginBottom:16}}><p style={{fontSize:14,color:T.gray700,lineHeight:1.6,margin:0}}>{pregText}</p></div>
                 {tipo==="triple_text"&&<div>
