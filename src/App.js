@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v3.1 - wizard preview borrador + admin editar eliminar */
+/* APP v4.0 - PPTX, comite decision tree, rol dropdown, SVG icons, terminologia fix */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -131,6 +131,8 @@ function applyTerms(text, terms) {
     .replace(/la Junta(| )/g, function(m,s){return art+" "+t.organo+s})
     .replace(/La Junta(| )/g, function(m,s){return artCap+" "+t.organo+s})
     .replace(/de Junta(\b|,|\.|;| |$)/g, function(m,s){return artDe+" "+t.organo+s})
+    .replace(/De Junta(\b|,|\.|;| |$)/g, function(m,s){return artDeCap+" "+t.organo+s})
+    .replace(/de Junta(\b|,|\.|;| |$)/g, function(m,s){return artDe+" "+t.organo+s})
     .replace(/De Junta(\b|,|\.|;| |$)/g, function(m,s){return artDeCap+" "+t.organo+s});
 }
 
@@ -147,6 +149,19 @@ var EMAILJS_SERVICE="YOUR_SERVICE_ID";
 var EMAILJS_TEMPLATE="YOUR_TEMPLATE_ID";
 var EMAILJS_PUBLIC="YOUR_PUBLIC_KEY";
 var AFIRMACION_INSTRUCTION="Las afirmaciones deben redactarse siempre en positivo, de forma que un mayor nivel de acuerdo refleje un mejor desempeño.";
+
+/* ══════════ KEARNEY SVG ICONS ══════════ */
+function IcoEye(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>)}
+function IcoRocket(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>)}
+function IcoTrash(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>)}
+function IcoEdit(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>)}
+function IcoPDF(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>)}
+function IcoCheck(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>)}
+function IcoSave(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>)}
+function IcoArrow(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>)}
+function IcoSlides(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>)}
+function IcoUsers(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>)}
+function IcoChart(p){var s=p.size||16;var c=p.color||"currentColor";return(<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>)}
 
 /* ══════════ KEARNEY LOGO SVG ══════════ */
 function KearneyLogo(p){
@@ -321,7 +336,7 @@ function AdminDashboard(p){
         <div style={{display:"flex",gap:12,alignItems:"center"}}>
           <div style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:600,color:nR>0?T.green:T.gray300}}>{nR}</div><div style={{fontSize:11,color:T.gray400}}>Respuestas</div></div>
           <div style={{fontSize:11,padding:"6px 12px",borderRadius:20,background:estStyle.bg,color:estStyle.color,fontWeight:600}}>{estStyle.label}</div>
-          {isBorrador&&<button onClick={function(e){launchEval(ev,e)}} style={{padding:"8px 16px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar</button>}
+          {isBorrador&&<button onClick={function(e){launchEval(ev,e)}} style={{padding:"8px 16px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:4,verticalAlign:"middle"}}><path d="M5 12h14M12 5l7 7-7 7"/></svg>Lanzar</button>}
           <button onClick={function(e){deleteEval(ev,e)}} style={{padding:"8px 12px",borderRadius:8,border:"1px solid "+T.red,background:"rgba(201,48,62,0.05)",color:T.red,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>🗑</button>
         </div>
       </div>);
@@ -418,15 +433,15 @@ function AdminManage(p){
     window.open(url,"_blank");
   }
 
-  var tabs=[{k:"tracking",l:"Seguimiento"},{k:"results",l:"Resultados"},{k:"informe",l:"📄 Informe PDF"},{k:"editar",l:"✏️ Editar"}];
+  var tabs=[{k:"tracking",l:"Seguimiento"},{k:"results",l:"Resultados"},{k:"informe",l:"Informe PPTX"},{k:"editar",l:"Editar"}];
   return(<div>
     <div style={{marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
       <div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>{evalData.co?evalData.co.nombre:"Evaluación"}</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{evalData.co?evalData.co.pais:""}{evalData.co&&evalData.co.sector?" · "+evalData.co.sector:""}</p></div>
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
-        <button onClick={previewEval} style={{padding:"9px 18px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>👁 Vista previa</button>
-        {!isLanzada&&<button onClick={launch} style={{padding:"9px 18px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar encuesta</button>}
-        {isLanzada&&<div style={{padding:"7px 14px",borderRadius:8,background:T.greenLight,color:T.green,fontSize:12,fontWeight:600}}>✓ Lanzada</div>}
-        <button onClick={deleteEvalManage} style={{padding:"9px 14px",borderRadius:8,border:"1px solid "+T.red,background:"rgba(201,48,62,0.05)",color:T.red,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🗑 Eliminar</button>
+        <button onClick={previewEval} style={{padding:"9px 18px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:"middle"}}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Vista previa</button>
+        {!isLanzada&&<button onClick={launch} style={{padding:"9px 18px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:"middle"}}><path d="M5 12h14M12 5l7 7-7 7"/></svg>Lanzar encuesta</button>}
+        {isLanzada&&<div style={{padding:"7px 14px",borderRadius:8,background:T.greenLight,color:T.green,fontSize:12,fontWeight:600}}><span style={{display:"flex",alignItems:"center",gap:5}}><IcoCheck size={12} color={T.green}/> Lanzada</span></div>}
+        <button onClick={deleteEvalManage} style={{padding:"9px 14px",borderRadius:8,border:"1px solid "+T.red,background:"rgba(201,48,62,0.05)",color:T.red,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:"middle"}}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Eliminar</button>
       </div>
     </div>
     {isBorrador&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Borrador — Esta evaluación aún no ha sido lanzada. Los encuestados no pueden acceder hasta que hagas clic en "Lanzar encuesta".</div>}
@@ -507,7 +522,7 @@ function AdminEdit(p){
     {sec==="abiertas"&&<A3Abiertas sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} list5PA={list5PA} setList5PA={setList5PA} list6AC={list6AC} setList6AC={setList6AC} go={function(){setSec("empresa")}} back={function(){setSec("comites")}}/>}
 
     <div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}>
-      <button onClick={save} disabled={saving} style={{padding:"13px 32px",borderRadius:8,border:"none",background:saving?T.gray200:T.brand,color:saving?T.gray400:"#fff",fontSize:14,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:T.fontBody}}>{saving?"Guardando...":"💾 Guardar cambios"}</button>
+      <button onClick={save} disabled={saving} style={{padding:"13px 32px",borderRadius:8,border:"none",background:saving?T.gray200:T.brand,color:saving?T.gray400:"#fff",fontSize:14,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:T.fontBody}}>{saving?"Guardando...":"Guardar cambios"}</button>
     </div>
   </div>);
 }
@@ -784,8 +799,8 @@ function A4Preview(p){
   var totComiteQ=p.comites.reduce(function(s,c){return s+c.afirmaciones.length},0);
   var nMand=Object.keys(p.mandatory).filter(function(k){return p.mandatory[k]}).length;
   return(<div><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24}}><div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>Vista Previa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{co.nombre} — {totPreg+totComiteQ} preguntas totales ({nMand} obligatorias)</p></div><div style={{display:"flex",gap:8}}><button onClick={p.back} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray700,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Atrás</button>
-<button onClick={p.preview} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>👁 Preview encuesta</button>
-<button onClick={p.gen} style={{padding:"10px 24px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>💾 Guardar borrador</button></div></div>
+<button onClick={p.preview} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:"middle"}}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview encuesta</button>
+<button onClick={p.gen} style={{padding:"10px 24px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}><span style={{display:"flex",alignItems:"center",gap:6}}><IcoSave size={13} color="#fff"/> Guardar borrador</span></button></div></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>{[{l:"Estadios",n:sel.estadios.length,c:T.brand},{l:"Afirmaciones",n:sel.afirmaciones.length,c:T.gold},{l:"Comités",n:p.comites.length+" ("+totComiteQ+")",c:T.teal},{l:"Abiertas",n:sel.abiertas.length,c:T.green}].map(function(x){return <Cd key={x.l} style={{textAlign:"center",padding:"24px 12px",borderTop:"3px solid "+x.c}}><div style={{fontFamily:T.font,fontSize:30,fontWeight:400,color:x.c}}>{x.n}</div><div style={{fontSize:12,color:T.gray500,marginTop:4}}>{x.l}</div></Cd>})}</div>
     {p.list5PA.length>0&&<Cd style={{marginBottom:12}}><h4 style={{fontSize:13,fontWeight:600,color:T.teal,margin:"0 0 8px"}}>5PA — Áreas de Formación ({p.list5PA.length})</h4><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{p.list5PA.map(function(t,i){return <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:6,background:T.offWhite,border:"1px solid "+T.gray200}}>{t}</span>})}</div></Cd>}
     {p.list6AC.length>0&&<Cd style={{marginBottom:12}}><h4 style={{fontSize:13,fontWeight:600,color:T.teal,margin:"0 0 8px"}}>6AC — Temas Estratégicos ({p.list6AC.length})</h4><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{p.list6AC.map(function(t,i){return <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:6,background:T.offWhite,border:"1px solid "+T.gray200}}>{t}</span>})}</div></Cd>}
@@ -918,227 +933,370 @@ function A7Informe(p){
   function saveEdit(pregId){setPreguntas(preguntas.map(function(q){return q.id===pregId?Object.assign({},q,{texto:editText}):q}));setEditIdx(null);setEditText("")}
   function deletePreg(pregId){setPreguntas(preguntas.filter(function(q){return q.id!==pregId}))}
 
-  function generatePDF(){
+  function generatePPTX(){
     setGenerating(true);
-    if(!window.jspdf){
-      var script=document.createElement("script");
-      script.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      script.onload=function(){buildPDF()};
-      script.onerror=function(){alert("Error cargando jsPDF. Verifica tu conexión.");setGenerating(false)};
-      document.head.appendChild(script);
-    } else {buildPDF()}
+    function loadScript(src,cb){
+      if(document.querySelector('script[src="'+src+'"]')){cb();return}
+      var s=document.createElement("script");s.src=src;
+      s.onload=cb;s.onerror=function(){alert("Error cargando librería. Verifica tu conexión.");setGenerating(false)};
+      document.head.appendChild(s);
+    }
+    loadScript("https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js",function(){buildPPTX()});
   }
 
-  function buildPDF(){
+  function buildPPTX(){
     try{
-      var jsPDF=window.jspdf.jsPDF;
-      var doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
-      var W=297;var H=210;
-      var brand=[120,35,220];var dark=[30,30,30];var gray=[100,100,100];var lgray=[200,200,200];
+      var pptx=new window.PptxGenJS();
+      pptx.layout="LAYOUT_WIDE";
       var co=p.co||{};var N=p.resps.length;
-      var CH_COLORS=["#D2D2D2","#787878","#D2D2D2","#C8A5F0","#7823DC"];
-      function hexToRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
-      function setFont(size,weight,color){doc.setFontSize(size);doc.setFont("helvetica",weight||"normal");doc.setTextColor(color?color[0]:dark[0],color?color[1]:dark[1],color?color[2]:dark[2])}
-      function fillRect(x,y,w,h,color){doc.setFillColor(color[0],color[1],color[2]);doc.rect(x,y,w,h,"F")}
-      function pageHeader(title,subtitle){fillRect(0,0,W,14,brand);setFont(8,"bold",[255,255,255]);doc.text("KEARNEY",10,9);setFont(7,"normal",[220,220,255]);doc.text(co.nombre||"",W-10,9,{align:"right"});setFont(11,"bold",brand);doc.text(title,10,24);if(subtitle){setFont(8,"normal",gray);doc.text(subtitle,10,30)}return subtitle?36:30}
-      function pageFooter(num){setFont(7,"normal",lgray);doc.text("Fuente: Análisis Kearney — Evaluación de Junta Directiva",10,H-5);doc.text(String(num),W-10,H-5,{align:"right"});setFont(7,"bold",lgray);doc.text("KEARNEY",W/2,H-5,{align:"center"})}
+      var BRAND="7823DC";var DARK="1E1E1E";var GRAY="636366";var LGRAY="C7C7CC";var WHITE="FFFFFF";
+      var COL_E=["D2D2D2","787878","D2D2D2","C8A5F0","7823DC"];
+      /* slide dimensions: 33.87 x 19.05 cm (WIDE) */
+      var W=33.87;var H=19.05;
+      var LW=6.8;var RX=7.8;var RW=W-RX-0.6;
 
-      /* PORTADA */
-      fillRect(0,0,W/2,H,[255,255,255]);fillRect(W/2,0,W/2,H,[248,247,252]);
-      doc.setFillColor(230,218,252);doc.triangle(W/2+20,20,W-20,20,W/2+20,H-20,"F");
-      doc.setFillColor(200,165,240);doc.triangle(W/2+40,40,W-20,40,W/2+40,H/2,"F");
-      setFont(26,"bold",brand);doc.text("Análisis de resultados",14,46);doc.text("del levantamiento de",14,60);doc.text("perspectivas",14,74);
-      setFont(14,"bold",dark);doc.text(co.nombre||"Empresa",14,92);setFont(11,"normal",gray);doc.text(co.anio||String(new Date().getFullYear()),14,102);
-      setFont(20,"bold",dark);doc.text("KEARNEY",14,H-12);
+      function addShell(slide,pn,empresa){
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.8,w:W,h:0.8,fill:{color:"F8F8F8"},line:{color:"E5E5EA",width:0.5}});
+        slide.addText("Fuente: Análisis Kearney — Evaluación de Junta Directiva",{x:0.6,y:H-0.65,w:14,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial"});
+        slide.addText("KEARNEY",{x:W/2-1,y:H-0.65,w:2,h:0.4,fontSize:6,bold:true,color:"505050",fontFace:"Arial",align:"center"});
+        slide.addText(String(pn),{x:W-1,y:H-0.65,w:0.8,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial",align:"right"});
+        slide.addText("Kearney – "+(empresa||""),{x:W-5,y:0.1,w:4.8,h:0.3,fontSize:5,color:"D0D0D0",fontFace:"Arial",align:"right"});
+      }
 
-      var pageNum=2;
+      function addSecHeader(slide,sec,title,sub){
+        slide.addText(sec,{x:RX,y:0.9,w:RW,h:0.4,fontSize:8,bold:true,color:BRAND,fontFace:"Arial"});
+        slide.addText(title,{x:RX,y:1.35,w:RW,h:0.35,fontSize:8,color:GRAY,fontFace:"Arial"});
+        if(sub)slide.addText(sub,{x:RX,y:1.65,w:RW,h:0.3,fontSize:7,color:GRAY,fontFace:"Arial"});
+        return sub?2.1:1.85;
+      }
 
-      /* SLIDE 2: TABLA DE CONTENIDO */
-      (function(){
-        doc.addPage();
-        fillRect(0,0,W,14,brand);
-        setFont(8,"bold",[255,255,255]);doc.text("KEARNEY",10,9);
-        setFont(7,"normal",[220,220,255]);doc.text(co.nombre||"",W-10,9,{align:"right"});
-        setFont(13,"bold",brand);doc.text("Análisis de resultados del levantamiento de perspectivas",10,26);
-        setFont(9,"normal",gray);doc.text(co.nombre||"",10,34);
+      function addLeftCol(slide,text){
+        slide.addText(text,{x:0.5,y:1.0,w:LW-0.3,h:8,fontSize:12,bold:true,color:BRAND,fontFace:"Arial",valign:"top",wrap:true});
+      }
 
-        var sections=[];
-        var eD2=procE(p.resps,p.sel);
-        var aD2=procA(p.resps,p.sel,allAfirm);
-        var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
-        if(eD2.qs.length) sections.push({titulo:"Estadios de Excelencia",sub:"Calificación promedio — "+eD2.qs.length+" dimensiones evaluadas",color:[120,35,220]});
-        if(aD2.qs.length) sections.push({titulo:"Resultados Afirmaciones",sub:"Escala de acuerdo — "+aD2.qs.length+" afirmaciones",color:[198,151,59]});
-        cD2.filter(function(c){return c.qs&&c.qs.length}).forEach(function(c){sections.push({titulo:"Comité: "+c.nombre,sub:"Promedio: "+(c.avg?c.avg.toFixed(1):"—")+" ("+c.qs.length+" dimensiones)",color:[8,145,178]})});
-        var has3P=p.resps.some(function(r){return r.answers&&r.answers.abiertas&&r.answers.abiertas["3P"]&&r.answers.abiertas["3P"].trim()});
-        if(has3P) sections.push({titulo:"Perfil nuevo miembro de Junta",sub:"Respuestas abiertas — características identificadas",color:[27,158,94]});
-        var has4PC=p.resps.some(function(r){return r.answers&&r.answers.abiertas&&r.answers.abiertas["4PC"]});
-        if(has4PC) sections.push({titulo:"Preguntas críticas",sub:"Cada participante formuló 3 preguntas clave",color:[120,35,220]});
-        if(rank6.length) sections.push({titulo:"Plan de acción estratégico (6AC)",sub:"Temas prioritarios para los próximos 3 años",color:[120,35,220]});
-        if(rank5.length) sections.push({titulo:"Áreas de formación (5PA)",sub:"Conocimientos priorizados por los Directores",color:[198,151,59]});
-
-        var cols=2;var colW=(W-28)/cols;var yTOC=44;var rowH=18;
-        sections.forEach(function(s,i){
-          var col=i%cols;var row=Math.floor(i/cols);
-          var cx=10+col*(colW+8);var cy=yTOC+row*(rowH+6);
-          fillRect(cx,cy,colW,rowH,[s.color[0],s.color[1],s.color[2]]);
-          doc.setFillColor(255,255,255);doc.setDrawColor(255,255,255);
-          var alpha=0.12;doc.setFillColor(Math.round(s.color[0]+(255-s.color[0])*0.85),Math.round(s.color[1]+(255-s.color[1])*0.85),Math.round(s.color[2]+(255-s.color[2])*0.85));
-          doc.rect(cx,cy,colW,rowH,"F");
-          doc.setDrawColor(s.color[0],s.color[1],s.color[2]);doc.setLineWidth(0.5);doc.rect(cx,cy,colW,rowH,"S");
-          fillRect(cx,cy,3,rowH,[s.color[0],s.color[1],s.color[2]]);
-          setFont(8,"bold",[s.color[0],s.color[1],s.color[2]]);doc.text(s.titulo,cx+6,cy+6.5,{maxWidth:colW-10});
-          setFont(7,"normal",gray);doc.text(s.sub,cx+6,cy+13,{maxWidth:colW-10});
+      function addLegend(slide,items,y){
+        items.forEach(function(it,i){
+          var lx=0.5+i*3.2;
+          if(it.stripe){
+            slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.55,h:0.35,fill:{color:"E0E0E0"},line:{color:"AAAAAA",width:0.5}});
+          } else {
+            slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.55,h:0.35,fill:{color:it.c},line:{color:it.c,width:0}});
+          }
+          slide.addText(it.l,{x:lx+0.65,y:y,w:2.4,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
         });
+      }
 
-        var totN=N;var promE=procE(p.resps,p.sel).avg;var promA=procA(p.resps,p.sel,allAfirm).avg;
-        var statsY=H-30;
-        fillRect(0,statsY-2,W,H-statsY+2,[248,247,252]);
-        doc.setDrawColor(230,220,250);doc.setLineWidth(0.3);doc.line(0,statsY-2,W,statsY-2);
-        var stats=[{l:"Participantes",v:String(totN)},{l:"Promedio Estadios",v:promE?promE.toFixed(1):"—"},{l:"Promedio Afirmaciones",v:promA?promA.toFixed(1):"—"},{l:"Comités evaluados",v:String(cD2.filter(function(c){return c.qs&&c.qs.length}).length)}];
-        var sw=W/stats.length;
-        stats.forEach(function(s,i){
-          setFont(16,"bold",brand);doc.text(s.v,sw*i+sw/2,statsY+10,{align:"center"});
-          setFont(7,"normal",gray);doc.text(s.l,sw*i+sw/2,statsY+16,{align:"center"});
+      function addHBar(slide,tema,dist,avg,rowY,barH,labelW,barX,barW,totalN,colors){
+        var label=tema.length>52?tema.substring(0,50)+"...":tema;
+        slide.addText(label,{x:RX,y:rowY,w:labelW,h:barH,fontSize:6.5,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
+        var xPos=barX;
+        dist.forEach(function(count,idx){
+          if(count===0)return;
+          var segW=(count/totalN)*barW;
+          slide.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:barH,fill:{color:colors[idx]},line:{color:colors[idx],width:0}});
+          if(segW>0.4){
+            slide.addText(String(count),{x:xPos,y:rowY,w:segW,h:barH,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});
+          }
+          xPos+=segW;
         });
-        pageFooter(pageNum);pageNum++;
-      })();
+        if(avg>0){
+          var cx=barX+barW+0.7;
+          if(avg>=3.5){
+            slide.addShape(pptx.ShapeType.ellipse,{x:cx-0.28,y:rowY,w:0.55,h:barH,fill:{type:"none"},line:{color:BRAND,width:1.2}});
+          }
+          slide.addText(avg.toFixed(1),{x:cx-0.28,y:rowY,w:0.55,h:barH,fontSize:7,bold:true,color:avg>=3.5?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"});
+        }
+      }
 
-      /* ESTADIOS */
+      /* ══════ PORTADA ══════ */
+      var s1=pptx.addSlide();
+      s1.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.8,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
+      s1.addShape(pptx.ShapeType.rect,{x:W/2+0.8,y:0,w:W/2-0.8,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
+      /* geometric triangles */
+      s1.addShape(pptx.ShapeType.rtTriangle,{x:W/2+1.5,y:1,w:W/2-2.2,h:H-2,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0},rotate:0});
+      s1.addText("Análisis de resultados
+del levantamiento de
+perspectivas",{x:0.8,y:2.8,w:LW,h:4,fontSize:24,bold:true,color:BRAND,fontFace:"Arial",wrap:true,lineSpacingMultiple:1.2});
+      s1.addText(co.nombre||"Empresa",{x:0.8,y:7.2,w:LW,h:0.7,fontSize:13,bold:true,color:DARK,fontFace:"Arial"});
+      s1.addText(co.anio||String(new Date().getFullYear()),{x:0.8,y:7.9,w:LW,h:0.5,fontSize:10,color:GRAY,fontFace:"Arial"});
+      s1.addText("KEARNEY",{x:0.8,y:H-1.2,w:5,h:0.6,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
+      var pn=2;
+
+      /* ══════ TABLA DE CONTENIDO ══════ */
+      var s2=pptx.addSlide();
+      s2.addShape(pptx.ShapeType.rect,{x:0,y:0,w:0.3,h:H,fill:{color:BRAND},line:{color:BRAND,width:0}});
+      s2.addText("Análisis de resultados del levantamiento de perspectivas",{x:0.5,y:0.7,w:W-1,h:0.7,fontSize:13,bold:true,color:BRAND,fontFace:"Arial"});
+      s2.addText(co.nombre||"",{x:0.5,y:1.4,w:W-1,h:0.4,fontSize:9,color:GRAY,fontFace:"Arial"});
+      s2.addShape(pptx.ShapeType.line,{x:0,y:1.9,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
+      var eD2=procE(p.resps,p.sel);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
+      var tocSecs=[];
+      if(eD2.qs.length)tocSecs.push({t:"Estadios de Excelencia",s:eD2.qs.length+" dimensiones",c:BRAND});
+      if(aD2.qs.length)tocSecs.push({t:"Resultados Afirmaciones",s:aD2.qs.length+" afirmaciones",c:BRAND});
+      cD2.filter(function(c){return c.qs&&c.qs.length}).forEach(function(c){tocSecs.push({t:"Comité: "+c.nombre,s:"Promedio "+(c.avg?c.avg.toFixed(1):"—"),c:"0891B2"})});
+      var has3P=p.resps.some(function(r){return r.answers&&r.answers.abiertas&&r.answers.abiertas["3P"]&&r.answers.abiertas["3P"].trim()});
+      if(has3P)tocSecs.push({t:"Perfil nuevo miembro",s:"Características identificadas",c:"1B9E5E"});
+      if(preguntas.length)tocSecs.push({t:"Preguntas críticas",s:"3 por participante",c:BRAND});
+      if(rank6.length)tocSecs.push({t:"Plan de acción estratégico",s:"Próximos 3 años",c:BRAND});
+      if(rank5.length)tocSecs.push({t:"Áreas de formación",s:"Prioridades directores",c:"C6973B"});
+      var nCols=2;var colWT=(W-1.5)/nCols;var yT=2.1;var rowHT=1.5;
+      tocSecs.forEach(function(s,i){
+        var col=i%nCols;var row=Math.floor(i/nCols);
+        var cx=0.5+col*(colWT+0.5);var cy=yT+row*(rowHT+0.3);
+        s2.addShape(pptx.ShapeType.rect,{x:cx,y:cy,w:0.2,h:rowHT,fill:{color:s.c},line:{color:s.c,width:0}});
+        var r2=parseInt(s.c.slice(0,2),16),g2=parseInt(s.c.slice(2,4),16),b2=parseInt(s.c.slice(4,6),16);
+        var mix=function(v){return Math.round(v+(255-v)*0.9).toString(16).padStart(2,"0")};
+        var bgc=mix(r2)+mix(g2)+mix(b2);
+        s2.addShape(pptx.ShapeType.rect,{x:cx+0.2,y:cy,w:colWT-0.2,h:rowHT,fill:{color:bgc},line:{color:bgc,width:0}});
+        s2.addText(s.t,{x:cx+0.35,y:cy+0.2,w:colWT-0.5,h:0.5,fontSize:8,bold:true,color:s.c,fontFace:"Arial"});
+        s2.addText(s.s,{x:cx+0.35,y:cy+0.8,w:colWT-0.5,h:0.4,fontSize:6.5,color:GRAY,fontFace:"Arial"});
+      });
+      var statY=H-2.5;
+      s2.addShape(pptx.ShapeType.rect,{x:0,y:statY,w:W,h:2,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
+      s2.addShape(pptx.ShapeType.line,{x:0,y:statY,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
+      var stats=[{l:"Participantes",v:String(N)},{l:"Promedio Estadios",v:eD2.avg?eD2.avg.toFixed(1):"—"},{l:"Promedio Afirmaciones",v:aD2.avg?aD2.avg.toFixed(1):"—"},{l:"Comités evaluados",v:String(cD2.filter(function(c){return c.qs&&c.qs.length}).length)}];
+      stats.forEach(function(s,i){var sw=W/stats.length;
+        s2.addText(s.v,{x:sw*i,y:statY+0.3,w:sw,h:0.8,fontSize:20,bold:true,color:BRAND,fontFace:"Arial",align:"center"});
+        s2.addText(s.l,{x:sw*i,y:statY+1.1,w:sw,h:0.4,fontSize:6.5,color:GRAY,fontFace:"Arial",align:"center"});
+      });
+      addShell(s2,pn,co.nombre);pn++;
+
+      /* ══════ ESTADIOS ══════ */
       var eD=procE(p.resps,p.sel);
       if(eD.qs.length>0){
-        doc.addPage();var yE=pageHeader("Estadios de Excelencia","Calificación promedio (N= "+N+")");
+        var sE=pptx.addSlide();
         var sortedE=eD.qs.slice().sort(function(a,b){return b.avg-a.avg});
-        var barH=7;var barGap=3;var labelW=82;var barAreaX=labelW+10;var barAreaW=W-barAreaX-28;
-        var legX=barAreaX;var legY=yE-5;
-        [["Sin info","#D2D2D2"],["E1","#787878"],["E2","#D2D2D2"],["E3","#C8A5F0"],["E4","#7823DC"]].forEach(function(l,i){fillRect(legX+i*30,legY,8,4,hexToRgb(l[1]));setFont(6,"normal",gray);doc.text(l[0],legX+i*30+10,legY+3.5)});
-        yE+=2;
-        sortedE.forEach(function(q,qi){if(yE>H-18)return;var rowY=yE+qi*(barH+barGap);setFont(7,"normal",dark);var label=q.tema.length>40?q.tema.substring(0,38)+"...":q.tema;doc.text(label,labelW,rowY+barH-1.5,{align:"right"});var xPos=barAreaX;q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*barAreaW;fillRect(xPos,rowY,segW,barH,hexToRgb(CH_COLORS[idx]));if(segW>5){setFont(6,"bold",idx===4?[255,255,255]:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+barH-1.5,{align:"center"})}xPos+=segW});setFont(8,"bold",brand);doc.text(q.avg>0?q.avg.toFixed(1):"—",barAreaX+barAreaW+3,rowY+barH-1.5)});
-        pageFooter(pageNum);pageNum++;
+        var topE=sortedE[0];
+        var insE=topE?"Los resultados muestran que "+topE.tema.toLowerCase()+" alcanza un promedio de "+topE.avg.toFixed(1)+", en nivel de "+(topE.avg>=3.5?"Alto Desempeño":topE.avg>=2.5?"Estándares Internacionales":"Cumplimiento Local")+".":"Estadios de Excelencia";
+        addLeftCol(sE,insE);
+        addLegend(sE,[{stripe:true,l:"Sin información"},{c:"787878",l:"Estadio 1"},{c:"D2D2D2",l:"Estadio 2"},{c:"C8A5F0",l:"Estadio 3"},{c:"7823DC",l:"Estadio 4"}],H-1.6);
+        var yE=addSecHeader(sE,"Estadios de Excelencia","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","(N= "+N+")");
+        sE.addText("Percepción promedio",{x:RX+RW,y:yE-0.3,w:2.5,h:0.3,fontSize:6,color:GRAY,fontFace:"Arial"});
+        var bH=0.52;var bGap=0.26;var lW2=5.6;var bX=RX+lW2+0.15;var bW=RW-lW2-1.8;
+        sortedE.forEach(function(q,qi){
+          if(yE+qi*(bH+bGap)>H-1.2)return;
+          addHBar(sE,q.tema,q.dist,q.avg,yE+qi*(bH+bGap),bH,lW2,bX,bW,N,COL_E);
+        });
+        /* zone labels */
+        var z4=sortedE.filter(function(q){return q.avg>=3.5});
+        var z3=sortedE.filter(function(q){return q.avg>=2.5&&q.avg<3.5});
+        if(z4.length)sE.addText("Estadio 4:
+Alto Desempeño",{x:bX+bW+1.4,y:yE,w:2,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z3.length)sE.addText("Estadio 3:
+Estándares Internacionales",{x:bX+bW+1.4,y:yE+z4.length*(bH+bGap),w:2,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        addShell(sE,pn,co.nombre);pn++;
       }
 
-      /* AFIRMACIONES */
+      /* ══════ AFIRMACIONES ══════ */
       var aD=procA(p.resps,p.sel,allAfirm);
       if(aD.qs.length>0){
-        doc.addPage();var yA=pageHeader("Resultados Afirmaciones","Calificación promedio (N= "+N+")");
-        var legXA=10;var legYA=yA-5;
-        [["Sin info","#D2D2D2"],["Tot.Desac.","#787878"],["En Desac.","#D2D2D2"],["De Acuerdo","#C8A5F0"],["Tot.Acuerdo","#7823DC"]].forEach(function(l,i){fillRect(legXA+i*38,legYA,8,4,hexToRgb(l[1]));setFont(6,"normal",gray);doc.text(l[0],legXA+i*38+10,legYA+3.5)});
-        yA+=2;var sortedA=aD.qs.slice().sort(function(a,b){return b.avg-a.avg});
-        var aBarH=7;var aGap=4;var aLabelW=100;var aBarX=aLabelW+10;var aBarW=W-aBarX-28;
-        sortedA.forEach(function(q,qi){if(yA>H-18)return;var rowY=yA+qi*(aBarH+aGap);setFont(6.5,"normal",dark);var label=q.tema.length>48?q.tema.substring(0,46)+"...":q.tema;doc.text(label,aLabelW,rowY+aBarH-1.5,{align:"right"});var xPos=aBarX;q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*aBarW;fillRect(xPos,rowY,segW,aBarH,hexToRgb(CH_COLORS[idx]));if(segW>5){setFont(5.5,"bold",idx===4?[255,255,255]:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+aBarH-1.5,{align:"center"})}xPos+=segW});setFont(8,"bold",brand);doc.text(q.avg>0?q.avg.toFixed(1):"—",aBarX+aBarW+3,rowY+aBarH-1.5)});
-        pageFooter(pageNum);pageNum++;
+        var sA=pptx.addSlide();
+        var sortedA=aD.qs.slice().sort(function(a,b){return b.avg-a.avg});
+        var topA=sortedA[0];var botA=sortedA[sortedA.length-1];
+        var insA=topA?"Las afirmaciones muestran mayor acuerdo en "+topA.tema.toLowerCase()+(botA&&botA.id!==topA.id?", mientras "+botA.tema.toLowerCase()+" requiere atención":"")+".":"Resultados Afirmaciones";
+        addLeftCol(sA,insA);
+        addLegend(sA,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desacuerdo"},{c:"D2D2D2",l:"En Desacuerdo"},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
+        sA.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-2.2,w:0.32,h:0.32,fill:{type:"none"},line:{color:BRAND,width:1}});
+        sA.addText("Aspecto a profundizar",{x:0.9,y:H-2.2,w:3,h:0.32,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        var yA=addSecHeader(sA,"Resultados Afirmaciones","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
+        var aBarH=0.52;var aGap=0.28;var aLW=6.5;var aBX=RX+aLW+0.15;var aBW=RW-aLW-1.8;
+        sA.addText("Afirmaciones",{x:RX,y:yA-0.25,w:aLW,h:0.28,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
+        sA.addText("Respuestas (N="+N+")",{x:aBX,y:yA-0.25,w:aBW,h:0.28,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
+        sA.addText("Percepción promedio",{x:aBX+aBW+0.1,y:yA-0.25,w:2,h:0.28,fontSize:6,color:GRAY,fontFace:"Arial"});
+        sortedA.forEach(function(q,qi){
+          if(yA+qi*(aBarH+aGap)>H-1.5)return;
+          var rowY=yA+qi*(aBarH+aGap);
+          sA.addShape(pptx.ShapeType.rect,{x:RX,y:rowY,w:0.45,h:aBarH,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
+          sA.addText(String(qi+1),{x:RX,y:rowY,w:0.45,h:aBarH,fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle"});
+          var txt=q.tema.length>55?q.tema.substring(0,53)+"...":q.tema;
+          sA.addText(txt,{x:RX+0.5,y:rowY,w:aLW-0.5,h:aBarH,fontSize:6.5,color:DARK,fontFace:"Arial",valign:"middle"});
+          var xPos=aBX;
+          q.dist.forEach(function(count,idx){
+            if(count===0)return;
+            var segW=(count/N)*aBW;
+            sA.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:aBarH,fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}});
+            if(segW>0.4)sA.addText(String(count),{x:xPos,y:rowY,w:segW,h:aBarH,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});
+            xPos+=segW;
+          });
+          if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sA.addShape(pptx.ShapeType.ellipse,{x:aBX+aBW+0.42,y:rowY,w:0.5,h:aBarH,fill:{type:"none"},line:{color:BRAND,width:1.2}})}sA.addText(q.avg.toFixed(1),{x:aBX+aBW+0.42,y:rowY,w:0.5,h:aBarH,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
+        });
+        /* scale labels */
+        var scY=H-1.3;var scLabs=["1
+Tot. Desac.","2
+Desac.","0
+Sin Info.","3
+Acuerdo","4
+Tot. Acuerdo"];var scColors=[COL_E[1],COL_E[2],COL_E[0],COL_E[3],COL_E[4]];
+        scLabs.forEach(function(sl,si){var sx=aBX+si*(aBW/5);sA.addShape(pptx.ShapeType.rect,{x:sx,y:scY,w:0.7,h:0.35,fill:{color:scColors[si]},line:{color:scColors[si],width:0}});sA.addText(sl.split("\n")[0],{x:sx,y:scY,w:0.7,h:0.35,fontSize:6,bold:true,color:"FFFFFF",fontFace:"Arial",align:"center",valign:"middle"});sA.addText(sl.split("\n")[1]||"",{x:sx,y:scY+0.35,w:0.7,h:0.3,fontSize:5.5,color:GRAY,fontFace:"Arial",align:"center"})});
+        addShell(sA,pn,co.nombre);pn++;
       }
 
-      /* COMITÉS */
+      /* ══════ COMITÉS ══════ */
       var cD=procC(p.resps,p.comites||[],allComiteAfirm);
-      cD.forEach(function(com){
-        if(!com.qs||!com.qs.length)return;
-        doc.addPage();var yC=pageHeader("Resultados Comité: "+com.nombre,"Promedio: "+(com.avg?com.avg.toFixed(1):"—")+"  (N= "+N+")");
-        var legXC=10;var legYC=yC-5;
-        [["Sin info","#D2D2D2"],["Tot.Desac.","#787878"],["En Desac.","#D2D2D2"],["De Acuerdo","#C8A5F0"],["Tot.Acuerdo","#7823DC"]].forEach(function(l,i){fillRect(legXC+i*38,legYC,8,4,hexToRgb(l[1]));setFont(6,"normal",gray);doc.text(l[0],legXC+i*38+10,legYC+3.5)});
-        yC+=2;var cBarH=8;var cGap=4;var cLabelW=100;var cBarX=cLabelW+10;var cBarW=W-cBarX-28;
-        com.qs.forEach(function(q,qi){if(yC>H-18)return;var rowY=yC+qi*(cBarH+cGap);setFont(7,"normal",dark);var label=q.tema.length>46?q.tema.substring(0,44)+"...":q.tema;doc.text(label,cLabelW,rowY+cBarH-2,{align:"right"});var xPos=cBarX;q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*cBarW;fillRect(xPos,rowY,segW,cBarH,hexToRgb(CH_COLORS[idx]));if(segW>5){setFont(6,"bold",idx===4?[255,255,255]:[50,50,50]);doc.text(String(count),xPos+segW/2,rowY+cBarH-2,{align:"center"})}xPos+=segW});setFont(8,"bold",brand);doc.text(q.avg>0?q.avg.toFixed(1):"—",cBarX+cBarW+3,rowY+cBarH-2)});
-        pageFooter(pageNum);pageNum++;
-      });
+      var activeCom=cD.filter(function(c){return c.qs&&c.qs.length});
+      if(activeCom.length>0){
+        var sC=pptx.addSlide();
+        var topCom=activeCom.slice().sort(function(a,b){return b.avg-a.avg})[0];
+        addLeftCol(sC,topCom?"Los resultados muestran una valoración favorable de los Comités, con mayor desempeño en el Comité de "+topCom.nombre+".":"Resultados Evaluación de Comités de Apoyo");
+        addLegend(sC,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desac."},{c:"D2D2D2",l:"En Desac."},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
+        sC.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-2.2,w:0.32,h:0.32,fill:{type:"none"},line:{color:BRAND,width:1}});
+        sC.addText("Aspecto a profundizar",{x:0.9,y:H-2.2,w:3,h:0.32,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        var yC=addSecHeader(sC,"Resultados Evaluación de Comités de Apoyo","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
+        var nCC=activeCom.length;var cCW=Math.min(3.8,(RW-0.3)/nCC);
+        activeCom.forEach(function(com,ci){
+          var cx=RX+ci*(cCW+0.3);var isTop=com===topCom;
+          if(isTop){sC.addShape(pptx.ShapeType.rect,{x:cx-0.08,y:yC-0.3,w:cCW+0.16,h:H-yC-0.6,fill:{type:"none"},line:{color:BRAND,width:1.2,dashType:"dash"}})}
+          sC.addText(com.nombre,{x:cx,y:yC,w:cCW,h:0.4,fontSize:7,bold:isTop,color:isTop?BRAND:GRAY,fontFace:"Arial",align:"center",wrap:true});
+          sC.addText("(N="+N+")",{x:cx,y:yC+0.42,w:cCW,h:0.28,fontSize:6,color:GRAY,fontFace:"Arial",align:"center"});
+        });
+        var allTemas=[];
+        activeCom.forEach(function(c){c.qs.forEach(function(q){if(!allTemas.includes(q.tema))allTemas.push(q.tema)})});
+        var rowHC=0.52;var gapC=0.32;var startYC=yC+0.85;
+        allTemas.forEach(function(tema,ti){
+          var rowY=startYC+ti*(rowHC+gapC);if(rowY>H-1.2)return;
+          sC.addText(tema,{x:RX-0.1,y:rowY,w:LW,h:rowHC,fontSize:7,bold:true,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
+          activeCom.forEach(function(com,ci){
+            var cx=RX+ci*(cCW+0.3);var q=com.qs.find(function(x){return x.tema===tema});if(!q)return;
+            var bW2=cCW-0.3;var xPos=cx;
+            q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*bW2;sC.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:rowHC,fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}});if(segW>0.35)sC.addText(String(count),{x:xPos,y:rowY,w:segW,h:rowHC,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});xPos+=segW});
+            if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sC.addShape(pptx.ShapeType.ellipse,{x:cx+bW2+0.08,y:rowY,w:0.4,h:rowHC,fill:{type:"none"},line:{color:BRAND,width:1}})}sC.addText(q.avg.toFixed(1),{x:cx+bW2+0.08,y:rowY,w:0.4,h:rowHC,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
+          });
+        });
+        addShell(sC,pn,co.nombre);pn++;
+      }
 
-      /* PLAN DE ACCIÓN 6AC */
+      /* ══════ PLAN DE ACCIÓN 6AC ══════ */
       if(rank6.length>0){
-        doc.addPage();var y6=pageHeader("Plan de acción para priorizar en los próximos 3 años","Resultados obtenidos – cada participante escogió 3 temas estratégicos  (N= "+N+")");
-        var maxCount6=rank6[0]?rank6[0].total:1;var barH6=7;var gap6=3;var labelW6=120;var barX6=labelW6+8;var barW6=W-barX6-50;
-        var umbralPx=(umbral/Math.max(maxCount6,1))*barW6;
-        rank6.forEach(function(item,i){if(y6>H-18)return;var rowY=y6+i*(barH6+gap6);var isH=item.total>=umbral;var barLen=(item.total/Math.max(maxCount6,1))*barW6;setFont(7,isH?"bold":"normal",isH?dark:gray);var label=item.tema.length>56?item.tema.substring(0,54)+"...":item.tema;doc.text(label,labelW6,rowY+barH6-2,{align:"right"});fillRect(barX6,rowY,barLen,barH6,isH?brand:[200,200,200]);setFont(7,"bold",isH?[255,255,255]:[100,100,100]);if(barLen>8)doc.text(String(item.total),barX6+barLen-4,rowY+barH6-2,{align:"right"});else{setFont(7,"bold",dark);doc.text(String(item.total),barX6+barLen+3,rowY+barH6-2)}});
-        doc.setDrawColor(200,35,62);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);doc.line(barX6+umbralPx,y6-4,barX6+umbralPx,y6+rank6.length*(barH6+gap6));doc.setLineDashPattern([],0);setFont(6,"bold",[200,35,62]);doc.text("Umbral: "+umbral+" de "+N,barX6+umbralPx+2,y6-1);
-        pageFooter(pageNum);pageNum++;
+        var s6=pptx.addSlide();
+        var top6=rank6[0];
+        addLeftCol(s6,top6?"La priorización de temas refleja consistencia en: "+top6.tema.substring(0,100)+".":"Plan de acción estratégico");
+        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-2.2,w:0.55,h:0.35,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
+        s6.addText("Directores",{x:1.15,y:H-2.2,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-1.75,w:0.55,h:0.35,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
+        s6.addText("Alta Gerencia",{x:1.15,y:H-1.75,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        var y6=addSecHeader(s6,"Plan de acción para priorizar en los próximos 3 años","Resultados obtenidos – cada participante escogió 3 temas estratégicos","(N= "+N+")");
+        var mx6=rank6[0]?rank6[0].total:1;var bH6=0.45;var g6=0.18;var lW6=8;var bX6=RX+lW6+0.15;var bW6=RW-lW6-2.5;
+        var uPx6=(umbral/Math.max(mx6,1))*bW6;
+        rank6.forEach(function(item,i){
+          if(y6+i*(bH6+g6)>H-1.3)return;
+          var rowY=y6+i*(bH6+g6);var isH=item.total>=umbral;
+          var label=item.tema.length>70?item.tema.substring(0,68)+"...":item.tema;
+          s6.addText(label,{x:RX,y:rowY,w:lW6,h:bH6,fontSize:6.5,bold:isH,color:isH?DARK:GRAY,fontFace:"Arial",align:"right",valign:"middle"});
+          var bLen=(item.total/Math.max(mx6,1))*bW6;
+          s6.addShape(pptx.ShapeType.rect,{x:bX6,y:rowY,w:bLen,h:bH6,fill:{color:isH?"7823DC":"C8C8C8"},line:{color:isH?"7823DC":"C8C8C8",width:0}});
+          s6.addText(String(item.total),{x:bX6+bLen+0.1,y:rowY,w:0.5,h:bH6,fontSize:7,bold:true,color:DARK,fontFace:"Arial",valign:"middle"});
+        });
+        s6.addShape(pptx.ShapeType.line,{x:bX6+uPx6,y:y6-0.3,w:0,h:rank6.length*(bH6+g6)+0.3,line:{color:"C8201E",width:1,dashType:"sysDash"}});
+        s6.addText("Umbral: "+umbral+" de "+N,{x:bX6+uPx6+0.1,y:y6-0.3,w:2.5,h:0.28,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
+        addShell(s6,pn,co.nombre);pn++;
       }
 
-      /* PLAN DE FORMACIÓN 5PA */
+      /* ══════ ÁREAS DE FORMACIÓN 5PA ══════ */
       if(rank5.length>0){
-        doc.addPage();var y5=pageHeader("Áreas de formación para Directores","Resultados obtenidos – cada participante escogió 3 áreas de formación  (N= "+N+")");
-        var maxCount5=rank5[0]?rank5[0].total:1;var barH5=7;var gap5=3;var labelW5=120;var barX5=labelW5+8;var barW5=W-barX5-50;
-        var umbralPx5=(umbral/Math.max(maxCount5,1))*barW5;
-        rank5.forEach(function(item,i){if(y5>H-18)return;var rowY=y5+i*(barH5+gap5);var isH=item.total>=umbral;var barLen=(item.total/Math.max(maxCount5,1))*barW5;setFont(7,isH?"bold":"normal",isH?dark:gray);var label=item.tema.length>56?item.tema.substring(0,54)+"...":item.tema;doc.text(label,labelW5,rowY+barH5-2,{align:"right"});fillRect(barX5,rowY,barLen,barH5,isH?brand:[200,200,200]);setFont(7,"bold",isH?[255,255,255]:[100,100,100]);if(barLen>8)doc.text(String(item.total),barX5+barLen-4,rowY+barH5-2,{align:"right"});else{setFont(7,"bold",dark);doc.text(String(item.total),barX5+barLen+3,rowY+barH5-2)}});
-        doc.setDrawColor(200,35,62);doc.setLineWidth(0.5);doc.setLineDashPattern([2,2],0);doc.line(barX5+umbralPx5,y5-4,barX5+umbralPx5,y5+rank5.length*(barH5+gap5));doc.setLineDashPattern([],0);setFont(6,"bold",[200,35,62]);doc.text("Umbral: "+umbral+" de "+N,barX5+umbralPx5+2,y5-1);
-        pageFooter(pageNum);pageNum++;
+        var s5=pptx.addSlide();
+        var top5=rank5[0];
+        addLeftCol(s5,top5?"Las áreas prioritarias de formación se concentran en: "+top5.tema.substring(0,100)+".":"Áreas de formación para Directores");
+        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-2.2,w:0.55,h:0.35,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
+        s5.addText("Directores",{x:1.15,y:H-2.2,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-1.75,w:0.55,h:0.35,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
+        s5.addText("Alta Gerencia",{x:1.15,y:H-1.75,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        var y5=addSecHeader(s5,"Áreas de formación para Directores","Resultados obtenidos – cada participante escogió 3 áreas de formación","(N= "+N+")");
+        var mx5=rank5[0]?rank5[0].total:1;var bH5=0.45;var g5=0.18;var lW5=8;var bX5=RX+lW5+0.15;var bW5=RW-lW5-2.5;
+        var uPx5=(umbral/Math.max(mx5,1))*bW5;
+        rank5.forEach(function(item,i){
+          if(y5+i*(bH5+g5)>H-1.3)return;
+          var rowY=y5+i*(bH5+g5);var isH=item.total>=umbral;
+          var label=item.tema.length>70?item.tema.substring(0,68)+"...":item.tema;
+          s5.addText(label,{x:RX,y:rowY,w:lW5,h:bH5,fontSize:6.5,bold:isH,color:isH?DARK:GRAY,fontFace:"Arial",align:"right",valign:"middle"});
+          var bLen5=(item.total/Math.max(mx5,1))*bW5;
+          s5.addShape(pptx.ShapeType.rect,{x:bX5,y:rowY,w:bLen5,h:bH5,fill:{color:isH?"7823DC":"C8C8C8"},line:{color:isH?"7823DC":"C8C8C8",width:0}});
+          s5.addText(String(item.total),{x:bX5+bLen5+0.1,y:rowY,w:0.5,h:bH5,fontSize:7,bold:true,color:DARK,fontFace:"Arial",valign:"middle"});
+        });
+        s5.addShape(pptx.ShapeType.line,{x:bX5+uPx5,y:y5-0.3,w:0,h:rank5.length*(bH5+g5)+0.3,line:{color:"C8201E",width:1,dashType:"sysDash"}});
+        s5.addText("Umbral: "+umbral+" de "+N,{x:bX5+uPx5+0.1,y:y5-0.3,w:2.5,h:0.28,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
+        addShell(s5,pn,co.nombre);pn++;
       }
 
-      /* PERFIL NUEVO MIEMBRO (3P) */
+      /* ══════ PERFIL NUEVO MIEMBRO 3P ══════ */
       (function(){
         var raw3P=[];
-        p.resps.forEach(function(r){
-          var val=r.answers&&r.answers.abiertas?r.answers.abiertas["3P"]:null;
-          if(val&&typeof val==="string"&&val.trim()) raw3P.push({texto:val.trim(),autor:r.respondent?r.respondent.nombre:"Anónimo"});
-        });
+        p.resps.forEach(function(r){var val=r.answers&&r.answers.abiertas?r.answers.abiertas["3P"]:null;if(val&&typeof val==="string"&&val.trim())raw3P.push({texto:val.trim(),autor:r.respondent?r.respondent.nombre:"Anónimo"})});
         if(!raw3P.length)return;
-        doc.addPage();
-        var yP3=pageHeader("Perfil, experiencia y/o capacidades de un nuevo miembro de Junta","Resultados obtenidos – Características identificadas  (N= "+N+")");
-        var cols=2;var colW=(W-28)/cols;var marginL=10;
+        var s3=pptx.addSlide();
+        addLeftCol(s3,"Los encuestados priorizan perfiles que combinan conocimiento de industria, capacidades financieras y trayectoria estratégica.");
+        var y3=addSecHeader(s3,"Perfil, experiencia y/o capacidades de un nuevo miembro","Resultados obtenidos – Características identificadas","(N= "+N+")");
+        var cols3=2;var colW3=(RW-0.4)/cols3;
         raw3P.forEach(function(item,i){
-          var col=i%cols;var curY;
-          if(col===0){
-            if(i===0){curY=yP3}
-            else{curY=yP3+(Math.floor(i/cols))*28;}
-          } else {
-            curY=yP3+(Math.floor(i/cols))*28;
-          }
-          if(curY>H-20)return;
-          var cx=marginL+col*(colW+8);
-          fillRect(cx,curY,colW,24,[248,247,252]);
-          doc.setDrawColor(200,200,200);doc.setLineWidth(0.2);doc.rect(cx,curY,colW,24,"S");
-          fillRect(cx,curY,2,24,[120,35,220]);
-          var lines=doc.splitTextToSize(item.texto,colW-12);
-          setFont(7.5,"normal",dark);
-          doc.text(lines.slice(0,3),cx+5,curY+6);
-          setFont(7,"normal",gray);
-          doc.text("— "+item.autor,cx+5,curY+20);
+          var col=i%cols3;var row=Math.floor(i/cols3);var rowY=y3+row*2.0;if(rowY>H-1.5)return;
+          var cx=RX+col*(colW3+0.4);
+          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:colW3,h:1.7,fill:{color:"F8F7FC"},line:{color:"E0E0E0",width:0.5}});
+          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:0.12,h:1.7,fill:{color:BRAND},line:{color:BRAND,width:0}});
+          s3.addText(item.texto,{x:cx+0.2,y:rowY+0.2,w:colW3-0.35,h:1.1,fontSize:7.5,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
+          s3.addText("— "+item.autor,{x:cx+0.2,y:rowY+1.35,w:colW3-0.35,h:0.28,fontSize:6.5,color:GRAY,fontFace:"Arial"});
         });
-        pageFooter(pageNum);pageNum++;
+        addShell(s3,pn,co.nombre);pn++;
       })();
 
-      /* PREGUNTAS CRÍTICAS */
+      /* ══════ PREGUNTAS CRÍTICAS 4PC ══════ */
       var famNames=familias.filter(function(f){return f&&f.trim()});
-      var sinFamilia=preguntas.filter(function(q){return!q.familia||!q.familia.trim()});
+      var sinFam=preguntas.filter(function(q){return!q.familia||!q.familia.trim()});
       var groups=[];
       famNames.forEach(function(f){var qs=preguntas.filter(function(q){return q.familia===f});if(qs.length)groups.push({nombre:f,preguntas:qs})});
-      if(sinFamilia.length)groups.push({nombre:null,preguntas:sinFamilia});
+      if(sinFam.length)groups.push({nombre:null,preguntas:sinFam});
       if(preguntas.length>0){
-        var PREGS_PER_PAGE=2;var pageGroups=[];var cur=[];
-        groups.forEach(function(g){cur.push(g);if(cur.length>=PREGS_PER_PAGE){pageGroups.push(cur);cur=[]}});
-        if(cur.length)pageGroups.push(cur);
-        pageGroups.forEach(function(pg){
-          doc.addPage();var yP=pageHeader("Preguntas críticas o clave para abordar en la Junta Directiva","Resultados obtenidos – cada participante planteó 3 preguntas  (N= "+N+")");
-          var colW=(W-24)/pg.length;
+        var PPP=2;var pageGroups=[];var curG=[];
+        groups.forEach(function(g){curG.push(g);if(curG.length>=PPP){pageGroups.push(curG);curG=[]}});
+        if(curG.length)pageGroups.push(curG);
+        pageGroups.forEach(function(pg,pgi){
+          var sP=pptx.addSlide();
+          var partL="("+(pgi+1)+"/"+pageGroups.length+")";
+          var yP=addSecHeader(sP,"Preguntas críticas o clave para abordar","Resultados obtenidos – cada participante planteó 3 preguntas  (N= "+N+")  "+partL,"");
+          var colWP=(RW-0.3*(pg.length-1))/pg.length;
           pg.forEach(function(grp,gi){
-            var colX=10+gi*colW;
+            var colX=RX+gi*(colWP+0.3);var yPI=yP;
             if(grp.nombre){
-              fillRect(colX,yP,colW-4,8,[240,230,255]);setFont(8,"bold",brand);doc.text(grp.nombre,colX+4,yP+5.5,{maxWidth:colW-10});var yPI=yP+11;
-              grp.preguntas.forEach(function(q,qi){if(yPI>H-14)return;var lines=doc.splitTextToSize((qi+1)+". "+q.texto,colW-8);setFont(7.5,"normal",dark);doc.text(lines,colX+4,yPI);yPI+=lines.length*4+3;doc.setDrawColor(220,210,250);doc.setLineWidth(0.2);doc.line(colX+4,yPI-1,colX+colW-6,yPI-1);yPI+=1});
-            } else {
-              var yPI2=yP+2;grp.preguntas.forEach(function(q,qi){if(yPI2>H-14)return;var lines=doc.splitTextToSize((qi+1)+". "+q.texto,colW-8);setFont(7.5,"normal",dark);doc.text(lines,colX+2,yPI2);yPI2+=lines.length*4+4});
+              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP,h:0.55,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
+              sP.addText(grp.nombre,{x:colX+0.15,y:yPI,w:colWP-0.2,h:0.55,fontSize:7.5,bold:true,color:BRAND,fontFace:"Arial",valign:"middle"});
+              yPI+=0.65;
             }
+            grp.preguntas.forEach(function(q,qi){
+              if(yPI>H-1.3)return;
+              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP-0.1,h:1.7,fill:{color:"FAFAFA"},line:{color:"DDD8F0",width:0.5}});
+              sP.addText((qi+1)+". "+q.texto,{x:colX+0.15,y:yPI+0.1,w:colWP-0.35,h:1.5,fontSize:7,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
+              yPI+=1.85;
+            });
           });
-          pageFooter(pageNum);pageNum++;
+          addShell(sP,pn,co.nombre);pn++;
         });
       }
 
-      /* CIERRE */
-      doc.addPage();fillRect(0,0,W/2,H,[255,255,255]);fillRect(W/2,0,W/2,H,[248,247,252]);
-      doc.setFillColor(230,218,252);doc.triangle(W/2+20,20,W-20,20,W/2+20,H-20,"F");doc.setFillColor(200,165,240);doc.triangle(W/2+40,40,W-20,40,W/2+40,H/2,"F");
-      setFont(22,"bold",brand);doc.text("Thank you",14,28);
+      /* ══════ CIERRE ══════ */
+      var sZ=pptx.addSlide();
+      sZ.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.8,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
+      sZ.addShape(pptx.ShapeType.rect,{x:W/2+0.8,y:0,w:W/2-0.8,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
+      sZ.addShape(pptx.ShapeType.rtTriangle,{x:W/2+1.5,y:1,w:W/2-2.2,h:H-2,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0}});
+      sZ.addText("Thank you",{x:0.8,y:1.2,w:LW,h:1.0,fontSize:20,bold:true,color:BRAND,fontFace:"Arial"});
       var equipo=co.equipo?co.equipo.split(",").map(function(s){return s.trim()}).filter(Boolean):[];
-      var yTeam=46;
-      equipo.forEach(function(nombre,i){var col=i%2;var row=Math.floor(i/2);var tx=14+col*100;var ty=yTeam+row*28;setFont(9,"bold",dark);doc.text(nombre,tx,ty);setFont(8,"normal",gray);doc.text("Equipo Kearney",tx,ty+6)});
-      setFont(8,"normal",gray);doc.text("Kearney is a leading global management consulting firm.",14,H-28,{maxWidth:W/2-20});doc.text("www.kearney.com",14,H-18);setFont(18,"bold",dark);doc.text("KEARNEY",14,H-10);
+      var yTeam=2.5;
+      equipo.forEach(function(nombre,i){
+        var col=i%2;var row=Math.floor(i/2);var tx=0.8+col*8.5;var ty=yTeam+row*1.8;
+        sZ.addText(nombre,{x:tx,y:ty,w:8,h:0.5,fontSize:9,bold:true,color:DARK,fontFace:"Arial"});
+        sZ.addText("Equipo Kearney",{x:tx,y:ty+0.5,w:8,h:0.35,fontSize:8,color:GRAY,fontFace:"Arial"});
+      });
+      sZ.addText("Kearney is a leading global management consulting firm. For nearly 100 years, we have been a trusted advisor to C-suites, government bodies, and nonprofits.",{x:0.8,y:H-3,w:LW,h:1.5,fontSize:7.5,color:GRAY,fontFace:"Arial",wrap:true});
+      sZ.addText("www.kearney.com",{x:0.8,y:H-1.4,w:5,h:0.4,fontSize:8,bold:true,color:DARK,fontFace:"Arial"});
+      sZ.addText("KEARNEY",{x:0.8,y:H-0.9,w:5,h:0.55,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
 
-      var filename="Informe_JD_"+(co.nombre||"Evaluacion").replace(/[^a-zA-Z0-9]/g,"_")+"_"+(co.anio||"")+".pdf";
-      doc.save(filename);setGenerating(false);
-    }catch(err){console.error("PDF error:",err);alert("Error generando PDF: "+err.message);setGenerating(false)}
+      var filename="Informe_JD_"+(co.nombre||"Evaluacion").replace(/[^a-zA-Z0-9]/g,"_")+"_"+(co.anio||"")+".pptx";
+      pptx.writeFile({fileName:filename}).then(function(){setGenerating(false)}).catch(function(err){alert("Error: "+err.message);setGenerating(false)});
+    }catch(err){console.error("PPTX error:",err);alert("Error generando PPTX: "+err.message);setGenerating(false)}
   }
 
   var sections=[{k:"preguntas",l:"Preguntas Críticas"},{k:"plan",l:"Plan de Acción / Formación"}];
   return(<div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:20}}>
       <div><h1 style={{fontFamily:T.font,fontSize:26,fontWeight:400,margin:"0 0 4px"}}>Editor de Informe</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>Configure el contenido antes de generar el PDF</p></div>
-      <button onClick={generatePDF} disabled={generating||p.resps.length===0} style={{padding:"12px 28px",borderRadius:8,border:"none",background:generating||p.resps.length===0?T.gray200:T.brand,color:generating||p.resps.length===0?T.gray400:"#fff",cursor:generating||p.resps.length===0?"not-allowed":"pointer",fontSize:14,fontWeight:600,fontFamily:T.fontBody,display:"flex",alignItems:"center",gap:8}}>
-        {generating?"Generando...":"📄 Generar PDF"}
+      <button onClick={generatePPTX} disabled={generating||p.resps.length===0} style={{padding:"12px 28px",borderRadius:8,border:"none",background:generating||p.resps.length===0?T.gray200:T.brand,color:generating||p.resps.length===0?T.gray400:"#fff",cursor:generating||p.resps.length===0?"not-allowed":"pointer",fontSize:14,fontWeight:600,fontFamily:T.fontBody,display:"flex",alignItems:"center",gap:8}}>
+        {generating?"Generando...":"Generar PPTX"}
       </button>
     </div>
     {p.resps.length===0&&<Cd style={{textAlign:"center",padding:40,color:T.gray400,marginBottom:20}}><p>Aún no hay respuestas. El informe se habilitará cuando haya datos.</p></Cd>}
@@ -1239,6 +1397,7 @@ function EvalPanel(p){
   var _sub=useState(false);var sub=_sub[0];var setSub=_sub[1];
   var _valErr=useState(null);var valErr=_valErr[0];var setValErr=_valErr[1];
   var _ot=useState("");var otherText=_ot[0];var setOtherText=_ot[1];
+  var _cm=useState(null);var comiteMemberships=_cm[0];var setComiteMemberships=_cm[1];
   var _ssi=useState(false);var showSecIntro=_ssi[0];var setShowSecIntro=_ssi[1];
   var topRef=useRef(null);
   useEffect(function(){
@@ -1295,7 +1454,7 @@ function EvalPanel(p){
     var allComiteAfirm=COMITE_AFIRMACIONES_STD.concat(evalData.custom_comite_afirmaciones||[]);
     if(evalData.sel.estadios&&evalData.sel.estadios.length) secs.push({key:"estadios",label:"Estadios de Excelencia",color:T.brand,questions:ESTADIOS.filter(function(q){return evalData.sel.estadios.includes(q.id)})});
     if(evalData.sel.afirmaciones&&evalData.sel.afirmaciones.length) secs.push({key:"afirmaciones",label:"Afirmaciones",color:T.gold,questions:allAfirm.filter(function(q){return evalData.sel.afirmaciones.includes(q.id)})});
-    if(evalData.comites){evalData.comites.forEach(function(com){var qs=com.afirmaciones.map(function(afId){return allComiteAfirm.find(function(a){return a.id===afId})}).filter(Boolean);if(qs.length)secs.push({key:"comite_"+com.id,comiteId:com.id,label:com.nombre,color:T.teal,questions:qs,isComite:true})})}
+    if(evalData.comites){evalData.comites.forEach(function(com){var qs=com.afirmaciones.map(function(afId){return allComiteAfirm.find(function(a){return a.id===afId})}).filter(Boolean);if(qs.length&&(!comiteMemberships||comiteMemberships[com.id]!==false))secs.push({key:"comite_"+com.id,comiteId:com.id,label:com.nombre,color:T.teal,questions:qs,isComite:true})})}
     if(evalData.selComiteAbiertas&&evalData.selComiteAbiertas.length>0){var comAbQ=ABIERTAS_COMITE.filter(function(q){return evalData.selComiteAbiertas.includes(q.id)});if(comAbQ.length)secs.push({key:"comite_abiertas",label:"Preguntas sobre Comités",color:T.teal,questions:comAbQ,isComiteOpen:true})}
     if(evalData.sel.abiertas&&evalData.sel.abiertas.length){secs.push({key:"abiertas",label:"Preguntas Abiertas",color:T.green,questions:ABIERTAS.filter(function(q){return evalData.sel.abiertas.includes(q.id)})})}
   }
@@ -1333,14 +1492,13 @@ function EvalPanel(p){
         var co2=evalData.co||{};
         var instr2=co2.instrucciones||INSTR_DEFAULT;
         var organo2=(evalData.terminologia&&evalData.terminologia.organo)||(co2.terminologia&&co2.terminologia.organo)||"Junta Directiva";
-        var txt=(instr2.general||INSTR_DEFAULT.general)
-          .replace(/Junta Directiva/g,organo2)
+        var terms2=(evalData.terminologia&&evalData.terminologia.organo)?evalData.terminologia:(co2.terminologia&&co2.terminologia.organo?co2.terminologia:TERM_DEFAULT);
+        var txt=applyTerms(instr2.general||INSTR_DEFAULT.general,terms2)
           .replace("{empresa}",co2.nombre||"la empresa")
           .replace("{fechaInicio}",co2.fechaInicio?new Date(co2.fechaInicio).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
           .replace("{fechaFin}",co2.fechaFin?new Date(co2.fechaFin).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
           .replace("{durMin}",co2.durMin||"30")
-          .replace("{durMax}",co2.durMax||"45");
-        var ctcs=(co2.contactos||[]).filter(function(c){return c.nombre});
+          .replace("{durMax}",co2.durMax||"45").contactos||[]).filter(function(c){return c.nombre});
         return <div style={{maxWidth:640,margin:"40px auto"}}>
           <Cd style={{marginBottom:20}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,paddingBottom:16,borderBottom:"1px solid "+T.gray100}}>
@@ -1360,9 +1518,57 @@ function EvalPanel(p){
 
       {phase==="code"&&<div style={{maxWidth:420,margin:"60px auto",textAlign:"center"}}><div style={{width:56,height:56,borderRadius:14,background:T.brand,display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:20}}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h1 style={{fontFamily:T.font,fontSize:26,fontWeight:400,margin:"0 0 6px"}}>Código de Acceso</h1><p style={{color:T.gray500,fontSize:14,margin:"0 0 24px"}}>Ingrese el código proporcionado por el administrador</p><Cd><input value={code} onChange={function(e){setCode(e.target.value)}} onKeyDown={function(e){if(e.key==="Enter")loadEval()}} placeholder="Ej: EVXXX123" style={{width:"100%",padding:"16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:20,textAlign:"center",fontFamily:"monospace",letterSpacing:4,outline:"none",fontWeight:700,color:T.brand,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/><button onClick={loadEval} disabled={!code.trim()} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:code.trim()?T.brand:T.gray200,color:code.trim()?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:code.trim()?"pointer":"not-allowed",marginTop:12,fontFamily:T.fontBody}}>Acceder</button></Cd></div>}
 
-      {phase==="person"&&<div style={{maxWidth:480,margin:"40px auto"}}><h1 style={{fontFamily:T.font,fontSize:26,fontWeight:400,margin:"0 0 6px",textAlign:"center"}}>Identificación</h1><p style={{color:T.gray500,fontSize:14,margin:"0 0 24px",textAlign:"center"}}>Complete sus datos para iniciar la evaluación</p><Cd>{[{k:"nombre",l:"NOMBRE COMPLETO",p:"Juan Pérez",req:true},{k:"cargo",l:"CARGO",p:"Director Independiente",req:true},{k:"rol",l:"ROL",p:"Miembro de Junta"},{k:"correo",l:"CORREO ELECTRÓNICO",p:"correo@empresa.com",req:true}].map(function(f){return <div key={f.k} style={{marginBottom:16}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>{f.l}{f.req?" *":""}</label><input value={person[f.k]} onChange={function(e){setPerson(Object.assign({},person,{[f.k]:e.target.value}))}} placeholder={f.p} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}<button onClick={function(){setSi(0);setQi(0);setPhase("survey")}} disabled={!person.nombre||!person.cargo||!person.correo} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:person.nombre&&person.cargo&&person.correo?T.brand:T.gray200,color:person.nombre&&person.cargo&&person.correo?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:person.nombre&&person.cargo&&person.correo?"pointer":"not-allowed",fontFamily:T.fontBody}}>Iniciar Evaluación</button></Cd></div>}
+      {phase==="person"&&<div style={{maxWidth:480,margin:"40px auto"}}><h1 style={{fontFamily:T.font,fontSize:26,fontWeight:400,margin:"0 0 6px",textAlign:"center"}}>Identificación</h1><p style={{color:T.gray500,fontSize:14,margin:"0 0 24px",textAlign:"center"}}>Complete sus datos para iniciar la evaluación</p><Cd>{[{k:"nombre",l:"NOMBRE COMPLETO",p:"Juan Pérez",req:true},{k:"cargo",l:"CARGO",p:"Director Independiente",req:true},{k:"correo",l:"CORREO ELECTRÓNICO",p:"correo@empresa.com",req:true}].map(function(f){return <div key={f.k} style={{marginBottom:16}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>{f.l}{f.req?" *":""}</label><input value={person[f.k]} onChange={function(e){setPerson(Object.assign({},person,{[f.k]:e.target.value}))}} placeholder={f.p} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
+              <div style={{marginBottom:16}}>
+                <label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>ROL *</label>
+                <select value={person.rol||""} onChange={function(e){setPerson(Object.assign({},person,{rol:e.target.value}))}} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box",background:T.white,color:person.rol?T.gray900:T.gray400}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}>
+                  <option value="">Seleccione su rol...</option>
+                  <option value="miembro_junta">{"Miembro "+(evalTerms&&evalTerms.organo?"de "+evalTerms.organo:"de la Junta Directiva")}</option>
+                  <option value="alta_gerencia">Miembro de la Administración / Alta Gerencia</option>
+                </select>
+              </div><button onClick={function(){
+              setSi(0);setQi(0);
+              if(evalData&&evalData.comites&&evalData.comites.length>0&&comiteMemberships===null){setPhase("comite_select")}
+              else{setPhase("survey")}
+            }} disabled={!person.nombre||!person.cargo||!person.correo||!person.rol} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:person.nombre&&person.cargo&&person.correo&&person.rol?T.brand:T.gray200,color:person.nombre&&person.cargo&&person.correo&&person.rol?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:person.nombre&&person.cargo&&person.correo&&person.rol?"pointer":"not-allowed",fontFamily:T.fontBody}}>Iniciar Evaluación</button></Cd></div>}
 
-      {phase==="survey"&&secs.length>0&&(function(){
+      {phase==="comite_select"&&evalData&&evalData.comites&&(function(){
+        var co4=evalData.co||{};
+        var pending=evalData.comites.filter(function(com){return comiteMemberships===null||comiteMemberships[com.id]===undefined});
+        var memberships=comiteMemberships||{};
+        function setMembership(comId,val){
+          var updated=Object.assign({},memberships,{[comId]:val});
+          setComiteMemberships(updated);
+        }
+        function confirmAndStart(){
+          setSi(0);setQi(0);setPhase("survey");
+        }
+        var allAnswered=evalData.comites.every(function(com){return memberships[com.id]!==undefined});
+        return <div style={{maxWidth:520,margin:"40px auto"}}>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <h1 style={{fontFamily:T.font,fontSize:24,fontWeight:400,margin:"0 0 8px"}}>Comités de Apoyo</h1>
+            <p style={{color:T.gray500,fontSize:14,margin:0}}>Indique en cuáles Comités participa como miembro</p>
+          </div>
+          {evalData.comites.map(function(com){
+            var val=memberships[com.id];
+            return <Cd key={com.id} style={{marginBottom:12,borderLeft:"3px solid "+(val===true?T.teal:val===false?T.gray300:T.gray200)}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:15,fontWeight:600,marginBottom:2}}>{com.nombre}</div>
+                  <div style={{fontSize:12,color:T.gray400}}>{com.afirmaciones.length} preguntas</div>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={function(){setMembership(com.id,true)}} style={{padding:"8px 20px",borderRadius:8,border:"2px solid "+(val===true?T.teal:T.gray200),background:val===true?"rgba(8,145,178,0.08)":T.white,color:val===true?T.teal:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Sí, soy miembro</button>
+                  <button onClick={function(){setMembership(com.id,false)}} style={{padding:"8px 20px",borderRadius:8,border:"2px solid "+(val===false?T.gray400:T.gray200),background:val===false?T.gray100:T.white,color:val===false?T.gray700:T.gray400,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>No participo</button>
+                </div>
+              </div>
+            </Cd>;
+          })}
+          <button onClick={confirmAndStart} disabled={!allAnswered} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:allAnswered?T.brand:T.gray200,color:allAnswered?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:allAnswered?"pointer":"not-allowed",fontFamily:T.fontBody,marginTop:8}}>Continuar con la evaluación →</button>
+        </div>;
+      })()}
+
+{phase==="survey"&&secs.length>0&&(function(){
         var sec=secs[si];var q=sec.questions[qi];var tot=sec.questions.length;
         var isMand=evalData.mandatory&&evalData.mandatory[q.id];
         function sa(t,qId,v){if(sec.isComite){var u=Object.assign({},ans);var comAns=Object.assign({},u.comites);comAns[sec.comiteId]=Object.assign({},comAns[sec.comiteId]||{},{[qId]:v});u.comites=comAns;setAns(u)}else{var u2=Object.assign({},ans);u2[t]=Object.assign({},u2[t],{[qId]:v});setAns(u2)}}
@@ -1385,7 +1591,12 @@ function EvalPanel(p){
             var co3=evalData.co||{};
             var instr3=co3.instrucciones||INSTR_DEFAULT;
             var sk=sec.key==="estadios"?"estadios":sec.key==="afirmaciones"?"afirmaciones":sec.isComite?"comites":null;
-            var itxt=sk?instr3[sk]||INSTR_DEFAULT[sk]||"":"";
+            var itxt=sk?(function(){
+              var raw=instr3[sk]||INSTR_DEFAULT[sk]||"";
+              var co3t=(evalData.co&&evalData.co.terminologia&&evalData.co.terminologia.organo)?evalData.co.terminologia:
+                       (evalData.terminologia&&evalData.terminologia.organo)?evalData.terminologia:TERM_DEFAULT;
+              return applyTerms(raw,co3t);
+            })():"";
             if(!itxt){setTimeout(function(){setShowSecIntro(false)},0);return null}
             return <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
               <div style={{background:T.white,borderRadius:16,padding:32,maxWidth:540,width:"100%",boxShadow:T.shadowLg,maxHeight:"85vh",overflowY:"auto"}}>
