@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v3.0 - editar eliminar lanzar preview */
+/* APP v3.1 - wizard preview borrador + admin editar eliminar */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -356,7 +356,17 @@ function AdminCreate(p){
     {step===1&&<A1 sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} customAfirm={customAfirm} setCustomAfirm={setCustomAfirm} go={function(){setStep(2)}} back={function(){setStep(0)}}/>}
     {step===2&&<A2Comites comites={comites} setComites={setComites} customComiteAfirm={customComiteAfirm} setCustomComiteAfirm={setCustomComiteAfirm} mandatory={mandatory} setMandatory={setMandatory} selComiteAbiertas={selComiteAbiertas} setSelComiteAbiertas={setSelComiteAbiertas} go={function(){setStep(3)}} back={function(){setStep(1)}}/>}
     {step===3&&<A3Abiertas sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} list5PA={list5PA} setList5PA={setList5PA} list6AC={list6AC} setList6AC={setList6AC} go={function(){setStep(4)}} back={function(){setStep(2)}}/>}
-    {step===4&&<A4Preview co={co} sel={sel} comites={comites} customAfirm={customAfirm} customComiteAfirm={customComiteAfirm} mandatory={mandatory} list5PA={list5PA} list6AC={list6AC} gen={generate} back={function(){setStep(3)}}/>}
+    {step===4&&<A4Preview co={co} sel={sel} comites={comites} customAfirm={customAfirm} customComiteAfirm={customComiteAfirm} mandatory={mandatory} list5PA={list5PA} list6AC={list6AC} gen={generate} back={function(){setStep(3)}} preview={function(){
+  var tempId="ev"+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
+  var tempPayload={id:tempId,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT,estado:"borrador"};
+  supabase.from("evaluations").insert(tempPayload).then(function(res){
+    if(!res.error){
+      var url=window.location.origin+"/#/preview/"+tempId;
+      window.open(url,"_blank");
+      setTimeout(function(){generate()},500);
+    } else {alert("Error al guardar preview: "+res.error.message)}
+  });
+}}/>}
   </div>);
 }
 
@@ -773,7 +783,9 @@ function A4Preview(p){
   var totPreg=sel.estadios.length+sel.afirmaciones.length+sel.abiertas.length;
   var totComiteQ=p.comites.reduce(function(s,c){return s+c.afirmaciones.length},0);
   var nMand=Object.keys(p.mandatory).filter(function(k){return p.mandatory[k]}).length;
-  return(<div><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24}}><div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>Vista Previa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{co.nombre} — {totPreg+totComiteQ} preguntas totales ({nMand} obligatorias)</p></div><div style={{display:"flex",gap:8}}><button onClick={p.back} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray700,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Atrás</button><button onClick={p.gen} style={{padding:"10px 24px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Generar Enlace de Evaluación</button></div></div>
+  return(<div><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24}}><div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>Vista Previa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{co.nombre} — {totPreg+totComiteQ} preguntas totales ({nMand} obligatorias)</p></div><div style={{display:"flex",gap:8}}><button onClick={p.back} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray700,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Atrás</button>
+<button onClick={p.preview} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>👁 Preview encuesta</button>
+<button onClick={p.gen} style={{padding:"10px 24px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>💾 Guardar borrador</button></div></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>{[{l:"Estadios",n:sel.estadios.length,c:T.brand},{l:"Afirmaciones",n:sel.afirmaciones.length,c:T.gold},{l:"Comités",n:p.comites.length+" ("+totComiteQ+")",c:T.teal},{l:"Abiertas",n:sel.abiertas.length,c:T.green}].map(function(x){return <Cd key={x.l} style={{textAlign:"center",padding:"24px 12px",borderTop:"3px solid "+x.c}}><div style={{fontFamily:T.font,fontSize:30,fontWeight:400,color:x.c}}>{x.n}</div><div style={{fontSize:12,color:T.gray500,marginTop:4}}>{x.l}</div></Cd>})}</div>
     {p.list5PA.length>0&&<Cd style={{marginBottom:12}}><h4 style={{fontSize:13,fontWeight:600,color:T.teal,margin:"0 0 8px"}}>5PA — Áreas de Formación ({p.list5PA.length})</h4><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{p.list5PA.map(function(t,i){return <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:6,background:T.offWhite,border:"1px solid "+T.gray200}}>{t}</span>})}</div></Cd>}
     {p.list6AC.length>0&&<Cd style={{marginBottom:12}}><h4 style={{fontSize:13,fontWeight:600,color:T.teal,margin:"0 0 8px"}}>6AC — Temas Estratégicos ({p.list6AC.length})</h4><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{p.list6AC.map(function(t,i){return <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:6,background:T.offWhite,border:"1px solid "+T.gray200}}>{t}</span>})}</div></Cd>}
