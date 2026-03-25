@@ -129,6 +129,14 @@ function applyTerms(text, terms) {
     .replace(/La Junta(| )/g, function(m,s){return artCap+" "+t.organo+s});
 }
 
+/* ══════════ INSTRUCCIONES POR SECCIÓN ══════════ */
+var INSTR_DEFAULT = {
+  general: "Bienvenido a la herramienta de captura de información para la evaluación de desempeño de la Junta Directiva de {empresa}.\n\nA continuación, le compartimos las consideraciones que deberá tener en cuenta:\n\n• La herramienta estará disponible desde {fechaInicio} hasta {fechaFin}. Le recomendamos responder en un solo intento para evitar la pérdida de información.\n\n• Completar el cuestionario le tomará entre {durMin} y {durMax} minutos.\n\n• Le recomendamos diligenciarlo desde un computador o tableta. Por favor, no utilice su teléfono celular.\n\n• Asegúrese de marcar o completar el número de campos especificado en cada pregunta. De lo contrario, la herramienta no le permitirá avanzar.\n\n• Antes de hacer clic en \"Finalizar\", podrá modificar sus respuestas usando los botones \"Anterior\" y \"Siguiente\".\n\n• La información recopilada será completamente confidencial y se utilizará únicamente para obtener una visión del funcionamiento de la Junta Directiva como equipo de alto desempeño.",
+  estadios: "A continuación, encontrará una serie de preguntas relacionadas con distintas áreas de desempeño de la Junta Directiva. Cada una presenta cuatro Estadios de Excelencia.\n\nLos Estadios corresponden a cuatro etapas de madurez: Etapa 1 (etapa inicial), Etapa 2 (cumplimiento local), Etapa 3 (estándares internacionales) y Etapa 4 (desempeño superior).\n\nSeleccione el estadio que considere más alineado con la situación actual. Si no cuenta con información suficiente, seleccione la opción \"No tengo suficiente información\".",
+  afirmaciones: "A continuación, encontrará una serie de afirmaciones relacionadas con el funcionamiento actual de la Junta Directiva y de sus Comités de Apoyo. Para cada afirmación, por favor elija una de las cinco opciones.",
+  comites: "Funcionamiento de los Comités de Apoyo. Responda las siguientes preguntas para aquellos Comités de los que sea miembro."
+};
+
 var aLabels=["Sin información","Totalmente en desacuerdo","En desacuerdo","De acuerdo","Totalmente de acuerdo"];
 var EMAILJS_SERVICE="YOUR_SERVICE_ID";
 var EMAILJS_TEMPLATE="YOUR_TEMPLATE_ID";
@@ -276,7 +284,7 @@ function AdminDashboard(p){
 /* === ADMIN CREATE === */
 function AdminCreate(p){
   var _st=useState(0);var step=_st[0];var setStep=_st[1];
-  var _co=useState({nombre:"",pais:"",sector:"",anio:"",equipo:"",terminologia:Object.assign({},TERM_DEFAULT)});var co=_co[0];var setCo=_co[1];
+  var _co=useState({nombre:"",pais:"",sector:"",anio:"",equipo:"",terminologia:Object.assign({},TERM_DEFAULT),fechaInicio:"",fechaFin:"",durMin:"30",durMax:"45",contactos:[{nombre:"",correo:"",telefono:""}],instrucciones:Object.assign({},INSTR_DEFAULT)});var co=_co[0];var setCo=_co[1];
   var _sel=useState({estadios:[],afirmaciones:[],abiertas:[]});var sel=_sel[0];var setSel=_sel[1];
   var _mand=useState({});var mandatory=_mand[0];var setMandatory=_mand[1];
   var _ca=useState([]);var customAfirm=_ca[0];var setCustomAfirm=_ca[1];
@@ -325,41 +333,99 @@ function AdminManage(p){
 
 /* ═══ ADMIN STEP 0: EMPRESA ═══ */
 function A0(p){
-  var co=p.co;var ok=co.nombre&&co.pais&&co.anio;
+  var co=p.co;
+  var ok=co.nombre&&co.pais&&co.anio&&co.fechaInicio&&co.fechaFin;
   function handlePaisChange(pais){
     var preset=TERM_PRESETS[pais]||TERM_DEFAULT;
     p.setCo(Object.assign({},co,{pais:pais,terminologia:Object.assign({},preset)}));
   }
   function handleTermChange(key,val){
-    var t=Object.assign({},co.terminologia||TERM_DEFAULT);
-    t[key]=val;
+    var t=Object.assign({},co.terminologia||TERM_DEFAULT);t[key]=val;
     p.setCo(Object.assign({},co,{terminologia:t}));
   }
+  function handleInstrChange(key,val){
+    var instr=Object.assign({},co.instrucciones||INSTR_DEFAULT);instr[key]=val;
+    p.setCo(Object.assign({},co,{instrucciones:instr}));
+  }
+  function handleContacto(i,key,val){
+    var cs=(co.contactos||[{nombre:"",correo:"",telefono:""}]).slice();
+    cs[i]=Object.assign({},cs[i],{[key]:val});
+    p.setCo(Object.assign({},co,{contactos:cs}));
+  }
+  function addContacto(){
+    var cs=(co.contactos||[{nombre:"",correo:"",telefono:""}]).slice();
+    if(cs.length<2)cs.push({nombre:"",correo:"",telefono:""});
+    p.setCo(Object.assign({},co,{contactos:cs}));
+  }
+  function removeContacto(i){
+    var cs=(co.contactos||[]).slice();cs.splice(i,1);
+    p.setCo(Object.assign({},co,{contactos:cs}));
+  }
   var term=co.terminologia||TERM_DEFAULT;
-  return(<div style={{maxWidth:560,margin:"40px auto"}}>
-    <div style={{marginBottom:28}}><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 6px"}}>Caracterización de la Empresa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>Configure los datos de la organización a evaluar</p></div>
+  var instr=co.instrucciones||INSTR_DEFAULT;
+  var contactos=co.contactos||[{nombre:"",correo:"",telefono:""}];
+  var iS={width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray900,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"};
+  var lS={fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8};
+  return(<div style={{maxWidth:620,margin:"40px auto"}}>
+    <div style={{marginBottom:24}}><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 6px"}}>Caracterización de la Empresa</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>Configure los datos de la organización a evaluar</p></div>
+
     <Cd style={{marginBottom:16}}>
-      {[{k:"nombre",l:"NOMBRE DE LA EMPRESA",p:"Empresa X S.A.",req:true},{k:"sector",l:"SECTOR",p:"Energía, Financiero"},{k:"anio",l:"AÑO DE EVALUACIÓN",p:"2026",req:true},{k:"equipo",l:"EQUIPO CONSULTOR",p:"Eulalia Sanín, Gloria Arango"}].map(function(f){return <div key={f.k} style={{marginBottom:18}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>{f.l}{f.req?" *":""}</label><input value={co[f.k]||""} onChange={function(e){p.setCo(Object.assign({},co,{[f.k]:e.target.value}))}} placeholder={f.p} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray900,fontSize:15,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
-      <div style={{marginBottom:18}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>PAÍS *</label>
-        <select value={co.pais||""} onChange={function(e){handlePaisChange(e.target.value)}} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:co.pais?T.gray900:T.gray400,fontSize:15,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}}>
+      <div style={{fontSize:13,fontWeight:600,color:T.brand,marginBottom:16}}>Datos generales</div>
+      {[{k:"nombre",l:"NOMBRE DE LA EMPRESA",p:"Empresa X S.A.",req:true},{k:"sector",l:"SECTOR",p:"Energía, Financiero"},{k:"anio",l:"AÑO DE EVALUACIÓN",p:"2026",req:true},{k:"equipo",l:"EQUIPO CONSULTOR",p:"Eulalia Sanín, Gloria Arango"}].map(function(f){return <div key={f.k} style={{marginBottom:16}}><label style={lS}>{f.l}{f.req?" *":""}</label><input value={co[f.k]||""} onChange={function(e){p.setCo(Object.assign({},co,{[f.k]:e.target.value}))}} placeholder={f.p} style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
+      <div style={{marginBottom:16}}><label style={lS}>PAÍS *</label>
+        <select value={co.pais||""} onChange={function(e){handlePaisChange(e.target.value)}} style={Object.assign({},iS,{color:co.pais?T.gray900:T.gray400})}>
           <option value="">Seleccione un país...</option>
           {["Colombia","México","Guatemala","Perú","Chile","Argentina","Ecuador","Brasil","Bolivia","Venezuela","Costa Rica","Panamá","Honduras","El Salvador","Nicaragua","República Dominicana","Paraguay","Uruguay","Otro"].map(function(px){return <option key={px} value={px}>{px}</option>})}
         </select>
       </div>
+      <div style={{display:"flex",gap:12,marginBottom:16}}>
+        <div style={{flex:1}}><label style={lS}>DURACIÓN ESTIMADA MÍNIMA (min)</label><input type="number" value={co.durMin||"30"} onChange={function(e){p.setCo(Object.assign({},co,{durMin:e.target.value}))}} placeholder="30" style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+        <div style={{flex:1}}><label style={lS}>DURACIÓN ESTIMADA MÁXIMA (min)</label><input type="number" value={co.durMax||"45"} onChange={function(e){p.setCo(Object.assign({},co,{durMax:e.target.value}))}} placeholder="45" style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+      </div>
       <button onClick={p.go} disabled={!ok} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:ok?T.brand:T.gray200,color:ok?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",fontFamily:T.fontBody}}>Continuar</button>
     </Cd>
-    <Cd style={{borderLeft:"4px solid "+T.brand,background:"rgba(120,35,220,0.02)"}}>
+
+    <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.amber}}>
+      <div style={{fontSize:13,fontWeight:600,color:T.amber,marginBottom:4}}>Disponibilidad de la encuesta *</div>
+      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Define el rango de fechas en que los encuestados podrán acceder.</p>
+      <div style={{display:"flex",gap:12}}>
+        <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE INICIO *</label><input type="datetime-local" value={co.fechaInicio||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaInicio:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+        <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE CIERRE *</label><input type="datetime-local" value={co.fechaFin||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaFin:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+      </div>
+    </Cd>
+
+    <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.teal}}>
+      <div style={{fontSize:13,fontWeight:600,color:T.teal,marginBottom:4}}>Personas de contacto</div>
+      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Aparecen en el header de la encuesta para que los participantes resuelvan dudas.</p>
+      {contactos.map(function(c,i){return <div key={i} style={{marginBottom:10,padding:12,background:T.offWhite,borderRadius:8}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <span style={{fontSize:12,fontWeight:600,color:T.gray500}}>Contacto {i+1}</span>
+          {i>0&&<button onClick={function(){removeContacto(i)}} style={{background:"none",border:"none",color:T.red,cursor:"pointer",fontSize:13,fontWeight:700}}>Eliminar</button>}
+        </div>
+        <div style={{display:"flex",gap:10}}>
+          <div style={{flex:2}}><label style={lS}>NOMBRE</label><input value={c.nombre||""} onChange={function(e){handleContacto(i,"nombre",e.target.value)}} placeholder="Nombre completo" style={iS} onFocus={function(e){e.target.style.borderColor=T.teal}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+          <div style={{flex:2}}><label style={lS}>CORREO</label><input value={c.correo||""} onChange={function(e){handleContacto(i,"correo",e.target.value)}} placeholder="correo@kearney.com" style={iS} onFocus={function(e){e.target.style.borderColor=T.teal}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+          <div style={{flex:1.5}}><label style={lS}>TELÉFONO</label><input value={c.telefono||""} onChange={function(e){handleContacto(i,"telefono",e.target.value)}} placeholder="+57 300..." style={iS} onFocus={function(e){e.target.style.borderColor=T.teal}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+        </div>
+      </div>})}
+      {contactos.length<2&&<button onClick={addContacto} style={{padding:"8px 16px",borderRadius:6,border:"1px dashed "+T.teal,background:"transparent",color:T.teal,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>+ Agregar segundo contacto</button>}
+    </Cd>
+
+    <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.brand,background:"rgba(120,35,220,0.02)"}}>
       <div style={{fontSize:13,fontWeight:600,color:T.brand,marginBottom:4}}>Terminología del órgano de gobierno</div>
-      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Se precarga según el país seleccionado. Puedes editarla si la empresa usa términos distintos.</p>
-      {[
-        {k:"organo",l:"NOMBRE DEL ÓRGANO",p:"Junta Directiva"},
-        {k:"presidente",l:"PRESIDENTE DEL ÓRGANO",p:"Presidente de la Junta Directiva"},
-        {k:"miembros",l:"MIEMBROS (en minúscula)",p:"miembros de la Junta Directiva"},
-        {k:"secretaria",l:"SECRETARÍA",p:"Secretaría de Junta"},
-        {k:"sesiones",l:"SESIONES (en minúscula)",p:"sesiones de Junta"}
-      ].map(function(f){return <div key={f.k} style={{marginBottom:12}}>
+      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Se precarga según el país. Puedes editarla si la empresa usa términos distintos.</p>
+      {[{k:"organo",l:"NOMBRE DEL ÓRGANO",p:"Junta Directiva"},{k:"presidente",l:"PRESIDENTE DEL ÓRGANO",p:"Presidente de la Junta Directiva"},{k:"miembros",l:"MIEMBROS (en minúscula)",p:"miembros de la Junta Directiva"},{k:"secretaria",l:"SECRETARÍA",p:"Secretaría de Junta"},{k:"sesiones",l:"SESIONES (en minúscula)",p:"sesiones de Junta"}].map(function(f){return <div key={f.k} style={{marginBottom:10}}>
         <label style={{fontSize:10,fontWeight:600,color:T.gray500,display:"block",marginBottom:4,letterSpacing:0.8}}>{f.l}</label>
-        <input value={term[f.k]||""} onChange={function(e){handleTermChange(f.k,e.target.value)}} placeholder={f.p} style={{width:"100%",padding:"10px 14px",borderRadius:7,border:"1px solid "+T.gray200,fontSize:13,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/>
+        <input value={term[f.k]||""} onChange={function(e){handleTermChange(f.k,e.target.value)}} placeholder={f.p} style={Object.assign({},iS,{fontSize:13})} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/>
+      </div>})}
+    </Cd>
+
+    <Cd style={{borderLeft:"4px solid "+T.green,background:"rgba(27,158,94,0.02)"}}>
+      <div style={{fontSize:13,fontWeight:600,color:T.green,marginBottom:4}}>Instrucciones para encuestados</div>
+      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Textos que verán los participantes al inicio de cada sección. Puedes editarlos.</p>
+      {[{k:"general",l:"PANTALLA DE BIENVENIDA",rows:6},{k:"estadios",l:"SECCIÓN ESTADIOS DE EXCELENCIA",rows:4},{k:"afirmaciones",l:"SECCIÓN AFIRMACIONES",rows:3},{k:"comites",l:"SECCIÓN COMÍTES",rows:2}].map(function(f){return <div key={f.k} style={{marginBottom:14}}>
+        <label style={{fontSize:10,fontWeight:600,color:T.gray500,display:"block",marginBottom:4,letterSpacing:0.8}}>{f.l}</label>
+        <textarea value={instr[f.k]||""} onChange={function(e){handleInstrChange(f.k,e.target.value)}} rows={f.rows} style={{width:"100%",padding:"10px 14px",borderRadius:7,border:"1px solid "+T.gray200,fontSize:12,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box",resize:"vertical",lineHeight:1.5,color:T.gray700}} onFocus={function(e){e.target.style.borderColor=T.green}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/>
       </div>})}
     </Cd>
   </div>);
@@ -990,15 +1056,24 @@ function EvalPanel(){
   var _sub=useState(false);var sub=_sub[0];var setSub=_sub[1];
   var _valErr=useState(null);var valErr=_valErr[0];var setValErr=_valErr[1];
   var _ot=useState("");var otherText=_ot[0];var setOtherText=_ot[1];
+  var _ssi=useState(false);var showSecIntro=_ssi[0];var setShowSecIntro=_ssi[1];
   var topRef=useRef(null);
 
   function loadEval(){
     var searchCode=code.trim().toLowerCase();
     supabase.from("evaluations").select("*").eq("id",searchCode).then(function(res){
       if(res.data&&res.data.length>0){
-        var d=res.data[0];setEvalData(d);
+        var d=res.data[0];
+        var co=d.co||{};
+        if(co.fechaInicio||co.fechaFin){
+          var now=new Date();
+          if(co.fechaInicio&&now<new Date(co.fechaInicio)){setEvalData(d);setPhase("unavailable");return}
+          if(co.fechaFin&&now>new Date(co.fechaFin)){setEvalData(d);setPhase("closed");return}
+        }
+        setEvalData(d);
         var comiteAns={};if(d.comites){d.comites.forEach(function(c){comiteAns[c.id]={}})}
-        setAns({estadios:{},afirmaciones:{},comites:comiteAns,abiertas:{},complements:{}});setPhase("person");
+        setAns({estadios:{},afirmaciones:{},comites:comiteAns,abiertas:{},complements:{}});
+        setPhase("welcome");
       } else {alert("Código no encontrado")}
     });
   }
@@ -1041,10 +1116,58 @@ function EvalPanel(){
     <header style={{background:T.brand,padding:"0 24px",position:"sticky",top:0,zIndex:100}}>
       <div ref={topRef} style={{maxWidth:700,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}><KearneyLogo size={90} color={T.white}/><div style={{width:1,height:20,background:"rgba(255,255,255,0.3)"}}/><div style={{fontSize:13,color:"rgba(255,255,255,0.8)"}}>Evaluación JD</div></div>
-        {evalData&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)"}}>{evalData.co.nombre}</div>}
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          {evalData&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)"}}>{evalData.co.nombre}</div>}
+          {evalData&&evalData.co.contactos&&evalData.co.contactos.filter(function(c){return c.nombre}).length>0&&<div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <div style={{width:1,height:16,background:"rgba(255,255,255,0.3)"}}/>
+            <span style={{fontSize:11,color:"rgba(255,255,255,0.55)"}}>Contacto:</span>
+            {evalData.co.contactos.filter(function(c){return c.nombre}).map(function(c,i){return <a key={i} href={"mailto:"+c.correo} title={(c.telefono||c.correo||"")} style={{fontSize:11,color:"rgba(255,255,255,0.85)",textDecoration:"none",fontWeight:600}}>{c.nombre}{i===0&&evalData.co.contactos.filter(function(x){return x.nombre}).length>1?" · ":""}</a>})}
+          </div>}
+        </div>
       </div>
     </header>
     <main style={{maxWidth:700,margin:"0 auto",padding:"28px 20px 60px"}}>
+
+      {phase==="unavailable"&&evalData&&<div style={{maxWidth:480,margin:"60px auto",textAlign:"center"}}>
+        <div style={{width:64,height:64,borderRadius:"50%",background:T.amber,display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:16}}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <h1 style={{fontFamily:T.font,fontSize:24,fontWeight:400,margin:"0 0 12px"}}>Encuesta no disponible aún</h1>
+        <Cd><p style={{fontSize:14,color:T.gray500,lineHeight:1.8,margin:0}}>La encuesta <strong>{evalData.co.nombre}</strong> aún no está abierta.<br/>Estará disponible a partir del <strong>{evalData.co.fechaInicio?new Date(evalData.co.fechaInicio).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):""}</strong>.</p></Cd>
+      </div>}
+
+      {phase==="closed"&&evalData&&<div style={{maxWidth:480,margin:"60px auto",textAlign:"center"}}>
+        <div style={{width:64,height:64,borderRadius:"50%",background:T.gray400,display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:16}}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h1 style={{fontFamily:T.font,fontSize:24,fontWeight:400,margin:"0 0 12px"}}>Encuesta cerrada</h1>
+        <Cd><p style={{fontSize:14,color:T.gray500,lineHeight:1.8,margin:0}}>El período de respuesta para <strong>{evalData.co.nombre}</strong> ha concluido.<br/>Fecha de cierre: <strong>{evalData.co.fechaFin?new Date(evalData.co.fechaFin).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):""}</strong>.</p></Cd>
+      </div>}
+
+      {phase==="welcome"&&evalData&&(function(){
+        var co2=evalData.co||{};
+        var instr2=co2.instrucciones||INSTR_DEFAULT;
+        var organo2=(evalData.terminologia&&evalData.terminologia.organo)||(co2.terminologia&&co2.terminologia.organo)||"Junta Directiva";
+        var txt=(instr2.general||INSTR_DEFAULT.general)
+          .replace(/Junta Directiva/g,organo2)
+          .replace("{empresa}",co2.nombre||"la empresa")
+          .replace("{fechaInicio}",co2.fechaInicio?new Date(co2.fechaInicio).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
+          .replace("{fechaFin}",co2.fechaFin?new Date(co2.fechaFin).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
+          .replace("{durMin}",co2.durMin||"30")
+          .replace("{durMax}",co2.durMax||"45");
+        var ctcs=(co2.contactos||[]).filter(function(c){return c.nombre});
+        return <div style={{maxWidth:640,margin:"40px auto"}}>
+          <Cd style={{marginBottom:20}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,paddingBottom:16,borderBottom:"1px solid "+T.gray100}}>
+              <div style={{width:48,height:48,borderRadius:12,background:T.brandGhost2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T.brand} strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div><div style={{fontSize:18,fontWeight:600,fontFamily:T.font}}>{co2.nombre}</div><div style={{fontSize:13,color:T.gray400,marginTop:2}}>{co2.anio?co2.anio+" · ":""}{organo2}</div></div>
+            </div>
+            <div style={{fontSize:14,color:T.gray700,lineHeight:1.9,whiteSpace:"pre-line"}}>{txt}</div>
+            {ctcs.length>0&&<div style={{marginTop:20,padding:"14px 16px",background:T.offWhite,borderRadius:8,borderLeft:"3px solid "+T.teal}}>
+              <div style={{fontSize:11,fontWeight:600,color:T.teal,marginBottom:8,letterSpacing:0.8}}>CONTACTO ANTE INCONVENIENTES</div>
+              {ctcs.map(function(c,i){return <div key={i} style={{fontSize:13,color:T.gray700,marginBottom:4}}><strong>{c.nombre}</strong>{c.correo?" · "+c.correo:""}{c.telefono?" · "+c.telefono:""}</div>})}
+            </div>}
+          </Cd>
+          <button onClick={function(){setPhase("person")}} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:T.brand,color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:T.fontBody}}>Comenzar evaluación →</button>
+        </div>;
+      })()}
+
 
       {phase==="code"&&<div style={{maxWidth:420,margin:"60px auto",textAlign:"center"}}><div style={{width:56,height:56,borderRadius:14,background:T.brand,display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:20}}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h1 style={{fontFamily:T.font,fontSize:26,fontWeight:400,margin:"0 0 6px"}}>Código de Acceso</h1><p style={{color:T.gray500,fontSize:14,margin:"0 0 24px"}}>Ingrese el código proporcionado por el administrador</p><Cd><input value={code} onChange={function(e){setCode(e.target.value)}} onKeyDown={function(e){if(e.key==="Enter")loadEval()}} placeholder="Ej: EVXXX123" style={{width:"100%",padding:"16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:20,textAlign:"center",fontFamily:"monospace",letterSpacing:4,outline:"none",fontWeight:700,color:T.brand,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/><button onClick={loadEval} disabled={!code.trim()} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:code.trim()?T.brand:T.gray200,color:code.trim()?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:code.trim()?"pointer":"not-allowed",marginTop:12,fontFamily:T.fontBody}}>Acceder</button></Cd></div>}
 
@@ -1055,7 +1178,11 @@ function EvalPanel(){
         var isMand=evalData.mandatory&&evalData.mandatory[q.id];
         function sa(t,qId,v){if(sec.isComite){var u=Object.assign({},ans);var comAns=Object.assign({},u.comites);comAns[sec.comiteId]=Object.assign({},comAns[sec.comiteId]||{},{[qId]:v});u.comites=comAns;setAns(u)}else{var u2=Object.assign({},ans);u2[t]=Object.assign({},u2[t],{[qId]:v});setAns(u2)}}
         function setComplement(qId,v){var u=Object.assign({},ans);u.complements=Object.assign({},u.complements,{[qId]:v});setAns(u)}
-        function nx(){if(qi<tot-1)setQi(qi+1);else if(si<secs.length-1){setSi(si+1);setQi(0)}else{if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"});setPhase("review")}}
+        function nx(){
+          if(qi<tot-1){setQi(qi+1)}
+          else if(si<secs.length-1){setSi(si+1);setQi(0);setShowSecIntro(true);if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"})}
+          else{if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"});setPhase("review")}
+        }
         function pv(){if(qi>0)setQi(qi-1);else if(si>0){setSi(si-1);setQi(secs[si-1].questions.length-1)}}
         var isF=si===0&&qi===0;var isL=si===secs.length-1&&qi===tot-1;
         var curVal;
@@ -1065,6 +1192,20 @@ function EvalPanel(){
         else{curVal=ans.abiertas[q.id]}
 
         return(<div>
+          {showSecIntro&&(function(){
+            var co3=evalData.co||{};
+            var instr3=co3.instrucciones||INSTR_DEFAULT;
+            var sk=sec.key==="estadios"?"estadios":sec.key==="afirmaciones"?"afirmaciones":sec.isComite?"comites":null;
+            var itxt=sk?instr3[sk]||INSTR_DEFAULT[sk]||"":"";
+            if(!itxt){setTimeout(function(){setShowSecIntro(false)},0);return null}
+            return <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+              <div style={{background:T.white,borderRadius:16,padding:32,maxWidth:540,width:"100%",boxShadow:T.shadowLg,maxHeight:"85vh",overflowY:"auto"}}>
+                <div style={{fontSize:11,fontWeight:700,color:sec.color,marginBottom:6,letterSpacing:1}}>{sec.label.toUpperCase()}</div>
+                <div style={{fontSize:14,color:T.gray700,lineHeight:1.8,whiteSpace:"pre-line",marginBottom:24}}>{itxt}</div>
+                <button onClick={function(){setShowSecIntro(false)}} style={{width:"100%",padding:"13px",borderRadius:8,border:"none",background:T.brand,color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:T.fontBody}}>Comenzar sección →</button>
+              </div>
+            </div>;
+          })()}
           <div style={{display:"flex",gap:4,marginBottom:16,overflowX:"auto",paddingBottom:4}}>{secs.map(function(s,i){return <div key={s.key} onClick={function(){setSi(i);setQi(0)}} style={{padding:"8px 14px",borderRadius:8,background:i===si?T.white:T.offWhite,border:"2px solid "+(i===si?s.color:T.gray200),cursor:"pointer",textAlign:"center",boxShadow:i===si?T.shadow:"none",flexShrink:0}}><div style={{fontSize:11,fontWeight:600,color:i===si?s.color:T.gray500,whiteSpace:"nowrap"}}>{s.label}</div></div>})}</div>
           <div style={{fontSize:13,color:T.gray400,marginBottom:10}}>Pregunta {qi+1} de {tot}{isMand?<span style={{color:T.red,fontWeight:600,marginLeft:8}}>* Obligatoria</span>:""}</div>
           <Cd style={{marginBottom:16,minHeight:280}}>
