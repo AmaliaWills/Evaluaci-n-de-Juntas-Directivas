@@ -1014,9 +1014,7 @@ function A7Informe(p){
       s1.addShape(pptx.ShapeType.rect,{x:W/2+0.8,y:0,w:W/2-0.8,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
       /* geometric triangles */
       s1.addShape(pptx.ShapeType.rtTriangle,{x:W/2+1.5,y:1,w:W/2-2.2,h:H-2,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0},rotate:0});
-      s1.addText("Análisis de resultados
-del levantamiento de
-perspectivas",{x:0.8,y:2.8,w:LW,h:4,fontSize:24,bold:true,color:BRAND,fontFace:"Arial",wrap:true,lineSpacingMultiple:1.2});
+      s1.addText("Análisis de resultados\ndel levantamiento de\nperspectivas",{x:0.8,y:2.8,w:LW,h:4,fontSize:24,bold:true,color:BRAND,fontFace:"Arial",wrap:true,lineSpacingMultiple:1.2});
       s1.addText(co.nombre||"Empresa",{x:0.8,y:7.2,w:LW,h:0.7,fontSize:13,bold:true,color:DARK,fontFace:"Arial"});
       s1.addText(co.anio||String(new Date().getFullYear()),{x:0.8,y:7.9,w:LW,h:0.5,fontSize:10,color:GRAY,fontFace:"Arial"});
       s1.addText("KEARNEY",{x:0.8,y:H-1.2,w:5,h:0.6,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
@@ -1079,10 +1077,8 @@ perspectivas",{x:0.8,y:2.8,w:LW,h:4,fontSize:24,bold:true,color:BRAND,fontFace:"
         /* zone labels */
         var z4=sortedE.filter(function(q){return q.avg>=3.5});
         var z3=sortedE.filter(function(q){return q.avg>=2.5&&q.avg<3.5});
-        if(z4.length)sE.addText("Estadio 4:
-Alto Desempeño",{x:bX+bW+1.4,y:yE,w:2,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
-        if(z3.length)sE.addText("Estadio 3:
-Estándares Internacionales",{x:bX+bW+1.4,y:yE+z4.length*(bH+bGap),w:2,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z4.length)sE.addText("Estadio 4:\nAlto Desempeño",{x:bX+bW+1.4,y:yE,w:2,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z3.length)sE.addText("Estadio 3:\nEstándares Internacionales",{x:bX+bW+1.4,y:yE+z4.length*(bH+bGap),w:2,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
         addShell(sE,pn,co.nombre);pn++;
       }
 
@@ -1120,12 +1116,7 @@ Estándares Internacionales",{x:bX+bW+1.4,y:yE+z4.length*(bH+bGap),w:2,h:z3.leng
           if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sA.addShape(pptx.ShapeType.ellipse,{x:aBX+aBW+0.42,y:rowY,w:0.5,h:aBarH,fill:{type:"none"},line:{color:BRAND,width:1.2}})}sA.addText(q.avg.toFixed(1),{x:aBX+aBW+0.42,y:rowY,w:0.5,h:aBarH,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
         });
         /* scale labels */
-        var scY=H-1.3;var scLabs=["1
-Tot. Desac.","2
-Desac.","0
-Sin Info.","3
-Acuerdo","4
-Tot. Acuerdo"];var scColors=[COL_E[1],COL_E[2],COL_E[0],COL_E[3],COL_E[4]];
+        var scY=H-1.3;var scLabs=["1\nTot. Desac.","2\nDesac.","0\nSin Info.","3\nAcuerdo","4\nTot. Acuerdo"];var scColors=[COL_E[1],COL_E[2],COL_E[0],COL_E[3],COL_E[4]];
         scLabs.forEach(function(sl,si){var sx=aBX+si*(aBW/5);sA.addShape(pptx.ShapeType.rect,{x:sx,y:scY,w:0.7,h:0.35,fill:{color:scColors[si]},line:{color:scColors[si],width:0}});sA.addText(sl.split("\n")[0],{x:sx,y:scY,w:0.7,h:0.35,fontSize:6,bold:true,color:"FFFFFF",fontFace:"Arial",align:"center",valign:"middle"});sA.addText(sl.split("\n")[1]||"",{x:sx,y:scY+0.35,w:0.7,h:0.3,fontSize:5.5,color:GRAY,fontFace:"Arial",align:"center"})});
         addShell(sA,pn,co.nombre);pn++;
       }
