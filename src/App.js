@@ -115,10 +115,12 @@ function applyTerms(text, terms) {
     .replace(/Presidente de la JD/g, t.presidente)
     .replace(/Presidente de la Junta/g, t.presidente)
     .replace(/miembros de la Junta Directiva/g, t.miembros)
+    .replace(/miembros de Junta Directiva/g, t.miembros)
     .replace(/miembros de Junta/g, t.miembros)
     .replace(/Miembros de Junta/g, t.miembros.charAt(0).toUpperCase()+t.miembros.slice(1))
     .replace(/Secretaría de Junta/g, t.secretaria)
     .replace(/sesiones de la Junta Directiva/g, t.sesiones)
+    .replace(/sesiones de Junta Directiva/g, t.sesiones)
     .replace(/sesiones de Junta/g, t.sesiones)
     .replace(/Junta Directiva/g, t.organo)
     .replace(/a la Junta(| )/g, function(m,s){return artA+" "+t.organo+s})
@@ -126,7 +128,9 @@ function applyTerms(text, terms) {
     .replace(/de la Junta(| )/g, function(m,s){return artDe+" "+t.organo+s})
     .replace(/De la Junta(| )/g, function(m,s){return artDeCap+" "+t.organo+s})
     .replace(/la Junta(| )/g, function(m,s){return art+" "+t.organo+s})
-    .replace(/La Junta(| )/g, function(m,s){return artCap+" "+t.organo+s});
+    .replace(/La Junta(| )/g, function(m,s){return artCap+" "+t.organo+s})
+    .replace(/de Junta(\b|,|\.|;| |$)/g, function(m,s){return artDe+" "+t.organo+s})
+    .replace(/De Junta(\b|,|\.|;| |$)/g, function(m,s){return artDeCap+" "+t.organo+s});
 }
 
 /* ══════════ INSTRUCCIONES POR SECCIÓN ══════════ */
@@ -162,7 +166,9 @@ function App(){
     return function(){window.removeEventListener("hashchange",onHash)};
   },[]);
   var isAdmin=hash==="#/admin"||hash.startsWith("#/admin");
+  var isPreview=hash.startsWith("#/preview/");
   if(isAdmin) return <AdminPanel/>;
+  if(isPreview){var previewId=hash.replace("#/preview/","");return <EvalPanel previewId={previewId} preview={true}/>;}
   return <EvalPanel/>;
 }
 export default App;
@@ -259,6 +265,30 @@ function AdminDashboard(p){
     supabase.from("evaluations").select("*").order("at",{ascending:false}).then(function(res){if(res.data)setEvals(res.data);setLoading(false)});
     supabase.from("responses").select("eval_id").then(function(res){if(res.data){var c={};res.data.forEach(function(r){c[r.eval_id]=(c[r.eval_id]||0)+1});setRc(c)}});
   },[]);
+
+  function launchEval(ev,e){
+    e.stopPropagation();
+    supabase.from("evaluations").update({estado:"activa"}).eq("id",ev.id).then(function(res){
+      if(!res.error){setEvals(evals.map(function(x){return x.id===ev.id?Object.assign({},x,{estado:"activa"}):x}))}
+    });
+  }
+
+  function getEstado(ev){
+    var co=ev.co||{};
+    if(ev.estado==="borrador"||(!ev.estado&&!ev.at)) return "borrador";
+    var now=new Date();
+    if(co.fechaFin&&now>new Date(co.fechaFin)) return "cerrada";
+    if(co.fechaInicio&&now<new Date(co.fechaInicio)) return "pendiente";
+    return ev.estado||"activa";
+  }
+
+  var estadoStyles={
+    borrador:{bg:"rgba(212,134,10,0.1)",color:"#D4860A",label:"Borrador"},
+    activa:{bg:T.greenLight,color:T.green,label:"Activa"},
+    pendiente:{bg:"rgba(8,145,178,0.1)",color:T.teal,label:"Pendiente"},
+    cerrada:{bg:T.gray100,color:T.gray400,label:"Cerrada"}
+  };
+
   return(<div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:28}}>
       <div><h1 style={{fontFamily:T.font,fontSize:32,fontWeight:400,margin:"0 0 6px"}}>Mis Evaluaciones</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{evals.length} evaluación{evals.length!==1?"es":""} creada{evals.length!==1?"s":""}</p></div>
@@ -269,19 +299,24 @@ function AdminDashboard(p){
     {!loading&&evals.length>0&&<div style={{display:"flex",flexDirection:"column",gap:8}}>{evals.map(function(ev){
       var co=ev.co||{};var nR=rc[ev.id]||0;
       var date=ev.at?new Date(ev.at).toLocaleDateString("es-CO",{day:"numeric",month:"short",year:"numeric"}):"—";
-      return(<div key={ev.id} onClick={function(){p.onOpen(ev)}} style={{background:T.white,borderRadius:12,border:"1px solid "+T.gray200,padding:"20px 24px",cursor:"pointer",boxShadow:T.shadow,display:"flex",alignItems:"center",gap:20}} onMouseEnter={function(e){e.currentTarget.style.borderColor=T.brand}} onMouseLeave={function(e){e.currentTarget.style.borderColor=T.gray200}}>
+      var est=getEstado(ev);var estStyle=estadoStyles[est]||estadoStyles.activa;
+      var isBorrador=est==="borrador";
+      return(<div key={ev.id} style={{background:T.white,borderRadius:12,border:"1px solid "+(isBorrador?"#D4860A":T.gray200),padding:"20px 24px",cursor:"pointer",boxShadow:T.shadow,display:"flex",alignItems:"center",gap:20}} onClick={function(){p.onOpen(ev)}} onMouseEnter={function(e){e.currentTarget.style.borderColor=T.brand}} onMouseLeave={function(e){e.currentTarget.style.borderColor=isBorrador?"#D4860A":T.gray200}}>
         <div style={{width:48,height:48,borderRadius:12,background:T.brandGhost2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><div style={{fontFamily:T.font,fontSize:20,color:T.brand}}>{co.nombre?co.nombre[0].toUpperCase():"E"}</div></div>
-        <div style={{flex:1}}><div style={{fontSize:16,fontWeight:600}}>{co.nombre||"Sin nombre"}</div><div style={{fontSize:13,color:T.gray400,marginTop:2}}>{co.pais||""}{co.sector?" · "+co.sector:""} · {date}</div></div>
-        <div style={{display:"flex",gap:16,alignItems:"center"}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:16,fontWeight:600}}>{co.nombre||"Sin nombre"}</div>
+          <div style={{fontSize:13,color:T.gray400,marginTop:2}}>{co.pais||""}{co.sector?" · "+co.sector:""} · {date}</div>
+        </div>
+        <div style={{display:"flex",gap:12,alignItems:"center"}}>
           <div style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:600,color:nR>0?T.green:T.gray300}}>{nR}</div><div style={{fontSize:11,color:T.gray400}}>Respuestas</div></div>
-          <div style={{fontSize:11,padding:"6px 12px",borderRadius:20,background:nR>0?T.greenLight:T.offWhite,color:nR>0?T.green:T.gray400,fontWeight:600}}>{nR>0?"Activa":"Pendiente"}</div>
+          <div style={{fontSize:11,padding:"6px 12px",borderRadius:20,background:estStyle.bg,color:estStyle.color,fontWeight:600}}>{estStyle.label}</div>
+          {isBorrador&&<button onClick={function(e){launchEval(ev,e)}} style={{padding:"8px 16px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar</button>}
         </div>
       </div>);
     })}</div>}
   </div>);
 }
 
-/* === ADMIN CREATE === */
 function AdminCreate(p){
   var _st=useState(0);var step=_st[0];var setStep=_st[1];
   var _co=useState({nombre:"",pais:"",sector:"",anio:"",equipo:"",terminologia:Object.assign({},TERM_DEFAULT),fechaInicio:"",fechaFin:"",durMin:"30",durMax:"45",contactos:[{nombre:"",correo:"",telefono:""}],instrucciones:Object.assign({},INSTR_DEFAULT)});var co=_co[0];var setCo=_co[1];
@@ -296,7 +331,7 @@ function AdminCreate(p){
 
   function generate(){
     var id="ev"+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
-    var payload={id:id,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT};
+    var payload={id:id,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT,estado:"borrador"};
     supabase.from("evaluations").insert(payload).then(function(res){
       if(!res.error){p.onDone(Object.assign({},payload,{at:new Date().toISOString()}))}
       else{console.error("Supabase error:",JSON.stringify(res.error));alert("Error: "+res.error.message)}
@@ -318,20 +353,46 @@ function AdminManage(p){
   var ev=p.evalData;
   var _tab=useState("tracking");var tab=_tab[0];var setTab=_tab[1];
   var _rs=useState([]);var resps=_rs[0];var setResps=_rs[1];
+  var _ev=useState(ev);var evalData=_ev[0];var setEvalData=_ev[1];
   useEffect(function(){
-    function fetch(){supabase.from("responses").select("*").eq("eval_id",ev.id).then(function(res){if(res.data)setResps(res.data.map(function(r){return{evalId:r.eval_id,respondent:r.respondent,answers:r.answers,submittedAt:r.submitted_at}}))})}
-    fetch();var i=setInterval(fetch,5000);return function(){clearInterval(i)};
+    function fetchR(){supabase.from("responses").select("*").eq("eval_id",ev.id).then(function(res){if(res.data)setResps(res.data.map(function(r){return{evalId:r.eval_id,respondent:r.respondent,answers:r.answers,submittedAt:r.submitted_at}}))})}
+    fetchR();var i=setInterval(fetchR,5000);return function(){clearInterval(i)};
   },[ev.id]);
+
+  var isBorrador=!evalData.estado||evalData.estado==="borrador";
+  var isLanzada=evalData.estado==="activa"||evalData.estado==="cerrada";
+
+  function launch(){
+    if(!window.confirm("¿Confirmas el lanzamiento? Los encuestados podrán acceder con el código de acceso.")) return;
+    supabase.from("evaluations").update({estado:"activa"}).eq("id",ev.id).then(function(res){
+      if(!res.error) setEvalData(Object.assign({},evalData,{estado:"activa"}));
+    });
+  }
+
+  function previewEval(){
+    var url=window.location.origin+"/#/preview/"+ev.id;
+    window.open(url,"_blank");
+  }
+
+  var tabs=[{k:"tracking",l:"Seguimiento"},{k:"results",l:"Resultados"},{k:"informe",l:"📄 Informe PDF"}];
   return(<div>
-    <div style={{marginBottom:20}}><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>{ev.co?ev.co.nombre:"Evaluación"}</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{ev.co?ev.co.pais:""}{ev.co&&ev.co.sector?" · "+ev.co.sector:""}</p></div>
-    <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{[{k:"tracking",l:"Seguimiento"},{k:"results",l:"Resultados"},{k:"informe",l:"📄 Informe PDF"}].map(function(t){return <button key={t.k} onClick={function(){setTab(t.k)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:tab===t.k?T.white:"transparent",color:tab===t.k?T.brand:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:tab===t.k?T.shadow:"none"}}>{t.l}</button>})}</div>
-    {tab==="tracking"&&<A5Track evalId={ev.id} resps={resps} co={ev.co||{}}/>}
-    {tab==="results"&&<A6Results resps={resps} co={ev.co||{}} sel={ev.sel||{}} comites={ev.comites||[]} customAfirm={ev.custom_afirmaciones||[]} customComiteAfirm={ev.custom_comite_afirmaciones||[]}/>}
-    {tab==="informe"&&<A7Informe resps={resps} co={ev.co||{}} sel={ev.sel||{}} comites={ev.comites||[]} customAfirm={ev.custom_afirmaciones||[]} customComiteAfirm={ev.custom_comite_afirmaciones||[]}/>}
+    <div style={{marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+      <div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>{evalData.co?evalData.co.nombre:"Evaluación"}</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{evalData.co?evalData.co.pais:""}{evalData.co&&evalData.co.sector?" · "+evalData.co.sector:""}</p></div>
+      <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <button onClick={previewEval} style={{padding:"9px 18px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>👁 Vista previa</button>
+        {isBorrador&&<button onClick={launch} style={{padding:"9px 18px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar encuesta</button>}
+        {isLanzada&&<div style={{padding:"7px 14px",borderRadius:8,background:T.greenLight,color:T.green,fontSize:12,fontWeight:600}}>✓ Lanzada</div>}
+      </div>
+    </div>
+    {isBorrador&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Borrador — Esta evaluación aún no ha sido lanzada. Los encuestados no pueden acceder hasta que hagas clic en "Lanzar encuesta".</div>}
+    {isLanzada&&resps.length>0&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(201,48,62,0.06)",border:"1px solid rgba(201,48,62,0.2)",marginBottom:16,fontSize:13,color:T.red,fontWeight:500}}>⚠️ Hay {resps.length} respuesta{resps.length!==1?"s":""} registrada{resps.length!==1?"s":""}. Los cambios que realices afectarán a encuestados activos.</div>}
+    <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{tabs.map(function(t){return <button key={t.k} onClick={function(){setTab(t.k)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:tab===t.k?T.white:"transparent",color:tab===t.k?T.brand:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:tab===t.k?T.shadow:"none"}}>{t.l}</button>})}</div>
+    {tab==="tracking"&&<A5Track evalId={ev.id} resps={resps} co={evalData.co||{}}/>}
+    {tab==="results"&&<A6Results resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]}/>}
+    {tab==="informe"&&<A7Informe resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]}/>}
   </div>);
 }
 
-/* ═══ ADMIN STEP 0: EMPRESA ═══ */
 function A0(p){
   var co=p.co;
   var ok=co.nombre&&co.pais&&co.anio&&co.fechaInicio&&co.fechaFin;
@@ -382,17 +443,17 @@ function A0(p){
         <div style={{flex:1}}><label style={lS}>DURACIÓN ESTIMADA MÍNIMA (min)</label><input type="number" value={co.durMin||"30"} onChange={function(e){p.setCo(Object.assign({},co,{durMin:e.target.value}))}} placeholder="30" style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
         <div style={{flex:1}}><label style={lS}>DURACIÓN ESTIMADA MÁXIMA (min)</label><input type="number" value={co.durMax||"45"} onChange={function(e){p.setCo(Object.assign({},co,{durMax:e.target.value}))}} placeholder="45" style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
       </div>
-      <div style={{marginBottom:16,paddingTop:8,borderTop:"1px solid "+T.gray100}}>
-        <div style={{fontSize:12,fontWeight:600,color:T.amber,marginBottom:10}}>DISPONIBILIDAD DE LA ENCUESTA *</div>
-        <div style={{display:"flex",gap:12}}>
-          <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE INICIO *</label><input type="datetime-local" value={co.fechaInicio||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaInicio:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
-          <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE CIERRE *</label><input type="datetime-local" value={co.fechaFin||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaFin:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
-        </div>
-      </div>
       <button onClick={p.go} disabled={!ok} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:ok?T.brand:T.gray200,color:ok?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",fontFamily:T.fontBody}}>Continuar</button>
     </Cd>
 
-
+    <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.amber}}>
+      <div style={{fontSize:13,fontWeight:600,color:T.amber,marginBottom:4}}>Disponibilidad de la encuesta *</div>
+      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Define el rango de fechas en que los encuestados podrán acceder.</p>
+      <div style={{display:"flex",gap:12}}>
+        <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE INICIO *</label><input type="datetime-local" value={co.fechaInicio||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaInicio:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+        <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE CIERRE *</label><input type="datetime-local" value={co.fechaFin||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaFin:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+      </div>
+    </Cd>
 
     <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.teal}}>
       <div style={{fontSize:13,fontWeight:600,color:T.teal,marginBottom:4}}>Personas de contacto</div>
@@ -1045,7 +1106,8 @@ function A7Informe(p){
 /* ══════════════════════════════════════════════════════════════
    EVALUATION PANEL (Respondent)
    ══════════════════════════════════════════════════════════════ */
-function EvalPanel(){
+function EvalPanel(p){
+  var isPreview=p&&p.preview;var previewEvalId=p&&p.previewId;
   var _cd=useState("");var code=_cd[0];var setCode=_cd[1];
   var _ev=useState(null);var evalData=_ev[0];var setEvalData=_ev[1];
   var _ph=useState("code");var phase=_ph[0];var setPhase=_ph[1];
@@ -1058,14 +1120,18 @@ function EvalPanel(){
   var _ot=useState("");var otherText=_ot[0];var setOtherText=_ot[1];
   var _ssi=useState(false);var showSecIntro=_ssi[0];var setShowSecIntro=_ssi[1];
   var topRef=useRef(null);
+  useEffect(function(){
+    if(isPreview&&previewEvalId){loadEval(previewEvalId)}
+  },[]);
 
-  function loadEval(){
-    var searchCode=code.trim().toLowerCase();
+  function loadEval(overrideCode){
+    var searchCode=(overrideCode||code).trim().toLowerCase();
+    
     supabase.from("evaluations").select("*").eq("id",searchCode).then(function(res){
       if(res.data&&res.data.length>0){
         var d=res.data[0];
         var co=d.co||{};
-        if(co.fechaInicio||co.fechaFin){
+        if(!isPreview&&(co.fechaInicio||co.fechaFin)){
           var now=new Date();
           if(co.fechaInicio&&now<new Date(co.fechaInicio)){setEvalData(d);setPhase("unavailable");return}
           if(co.fechaFin&&now>new Date(co.fechaFin)){setEvalData(d);setPhase("closed");return}
@@ -1094,6 +1160,7 @@ function EvalPanel(){
   }
 
   function submit(){
+    if(isPreview){alert("Modo vista previa — las respuestas no se guardan.");return}
     var miss=validate();if(miss){setValErr(miss);return}setSub(true);
     supabase.from("responses").insert({eval_id:evalData.id,respondent:person,answers:ans}).then(function(res){
       if(!res.error){setPhase("done")}else{alert("Error al enviar");setSub(false)}
@@ -1113,7 +1180,7 @@ function EvalPanel(){
   }
 
   return(<div style={{minHeight:"100vh",background:T.offWhite,fontFamily:T.fontBody,color:T.gray900}}>
-    <header style={{background:T.brand,padding:"0 24px",position:"sticky",top:0,zIndex:100}}>
+    <header style={{background:isPreview?T.amber:T.brand,padding:"0 24px",position:"sticky",top:0,zIndex:100}}>
       <div ref={topRef} style={{maxWidth:700,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}><KearneyLogo size={90} color={T.white}/><div style={{width:1,height:20,background:"rgba(255,255,255,0.3)"}}/><div style={{fontSize:13,color:"rgba(255,255,255,0.8)"}}>Evaluación JD</div></div>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -1127,6 +1194,7 @@ function EvalPanel(){
       </div>
     </header>
     <main style={{maxWidth:700,margin:"0 auto",padding:"28px 20px 60px"}}>
+      {isPreview&&<div style={{background:"rgba(212,134,10,0.1)",border:"1px solid rgba(212,134,10,0.4)",borderRadius:8,padding:"10px 16px",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500,textAlign:"center"}}>👁 Modo vista previa — Las respuestas no se guardarán</div>}
 
       {phase==="unavailable"&&evalData&&<div style={{maxWidth:480,margin:"60px auto",textAlign:"center"}}>
         <div style={{width:64,height:64,borderRadius:"50%",background:T.amber,display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:16}}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
@@ -1144,8 +1212,8 @@ function EvalPanel(){
         var co2=evalData.co||{};
         var instr2=co2.instrucciones||INSTR_DEFAULT;
         var organo2=(evalData.terminologia&&evalData.terminologia.organo)||(co2.terminologia&&co2.terminologia.organo)||"Junta Directiva";
-        var terms2=evalData.terminologia&&evalData.terminologia.organo?evalData.terminologia:(co2.terminologia&&co2.terminologia.organo?co2.terminologia:TERM_DEFAULT);
-        var txt=applyTerms((instr2.general||INSTR_DEFAULT.general),terms2)
+        var txt=(instr2.general||INSTR_DEFAULT.general)
+          .replace(/Junta Directiva/g,organo2)
           .replace("{empresa}",co2.nombre||"la empresa")
           .replace("{fechaInicio}",co2.fechaInicio?new Date(co2.fechaInicio).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
           .replace("{fechaFin}",co2.fechaFin?new Date(co2.fechaFin).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
@@ -1164,7 +1232,7 @@ function EvalPanel(){
               {ctcs.map(function(c,i){return <div key={i} style={{fontSize:13,color:T.gray700,marginBottom:4}}><strong>{c.nombre}</strong>{c.correo?" · "+c.correo:""}{c.telefono?" · "+c.telefono:""}</div>})}
             </div>}
           </Cd>
-          <button onClick={function(){setPhase("person")}} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:T.brand,color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:T.fontBody}}>Comenzar evaluación →</button>
+          <button onClick={function(){setPhase("person")}} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:isPreview?T.amber:T.brand,color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:T.fontBody}}>{isPreview?"👁 Vista previa — Comenzar simulación":"Comenzar evaluación →"}</button>
         </div>;
       })()}
 
