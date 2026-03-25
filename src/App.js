@@ -1,4 +1,5 @@
 /* eslint-disable */
+/* v2.1 - borrador/lanzamiento/preview/terminologia */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
