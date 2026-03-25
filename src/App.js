@@ -1,5 +1,4 @@
 /* eslint-disable */
-/* v2.1 - borrador/lanzamiento/preview/terminologia */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -381,11 +380,11 @@ function AdminManage(p){
       <div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>{evalData.co?evalData.co.nombre:"Evaluación"}</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{evalData.co?evalData.co.pais:""}{evalData.co&&evalData.co.sector?" · "+evalData.co.sector:""}</p></div>
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
         <button onClick={previewEval} style={{padding:"9px 18px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>👁 Vista previa</button>
-        {isBorrador&&<button onClick={launch} style={{padding:"9px 18px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar encuesta</button>}
+        {!isLanzada&&<button onClick={launch} style={{padding:"9px 18px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar encuesta</button>}
         {isLanzada&&<div style={{padding:"7px 14px",borderRadius:8,background:T.greenLight,color:T.green,fontSize:12,fontWeight:600}}>✓ Lanzada</div>}
       </div>
     </div>
-    {isBorrador&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Borrador — Esta evaluación aún no ha sido lanzada. Los encuestados no pueden acceder hasta que hagas clic en "Lanzar encuesta".</div>}
+    {!isLanzada&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Esta evaluación aún no ha sido lanzada formalmente. Haz clic en "Lanzar encuesta" para activarla oficialmente.</div>}
     {isLanzada&&resps.length>0&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(201,48,62,0.06)",border:"1px solid rgba(201,48,62,0.2)",marginBottom:16,fontSize:13,color:T.red,fontWeight:500}}>⚠️ Hay {resps.length} respuesta{resps.length!==1?"s":""} registrada{resps.length!==1?"s":""}. Los cambios que realices afectarán a encuestados activos.</div>}
     <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{tabs.map(function(t){return <button key={t.k} onClick={function(){setTab(t.k)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:tab===t.k?T.white:"transparent",color:tab===t.k?T.brand:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:tab===t.k?T.shadow:"none"}}>{t.l}</button>})}</div>
     {tab==="tracking"&&<A5Track evalId={ev.id} resps={resps} co={evalData.co||{}}/>}
