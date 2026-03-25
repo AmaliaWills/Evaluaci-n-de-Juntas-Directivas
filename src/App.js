@@ -1489,7 +1489,8 @@ function EvalPanel(p){
           .replace("{fechaInicio}",co2.fechaInicio?new Date(co2.fechaInicio).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
           .replace("{fechaFin}",co2.fechaFin?new Date(co2.fechaFin).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
           .replace("{durMin}",co2.durMin||"30")
-          .replace("{durMax}",co2.durMax||"45").contactos||[]).filter(function(c){return c.nombre});
+          .replace("{durMax}",co2.durMax||"45");
+        var ctcs=(co2.contactos||[]).filter(function(c){return c.nombre});
         return <div style={{maxWidth:640,margin:"40px auto"}}>
           <Cd style={{marginBottom:20}}>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,paddingBottom:16,borderBottom:"1px solid "+T.gray100}}>
