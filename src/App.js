@@ -276,7 +276,7 @@ function AdminDashboard(p){
 
   function deleteEval(ev,e){
     e.stopPropagation();
-    if(!window.confirm("¿Eliminar la evaluación ""+( ev.co&&ev.co.nombre||"esta evaluación")+""? Esta acción no se puede deshacer y eliminará todas las respuestas.")) return;
+    if(!window.confirm("Eliminar " +(ev.co&&ev.co.nombre||"esta evaluacion")+ "? Esta accion no se puede deshacer y eliminara todas las respuestas.")) return;
     supabase.from("responses").delete().eq("eval_id",ev.id).then(function(){
       supabase.from("evaluations").delete().eq("id",ev.id).then(function(res){
         if(!res.error) setEvals(evals.filter(function(x){return x.id!==ev.id}));
