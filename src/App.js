@@ -1,5 +1,4 @@
 /* eslint-disable */
-/* v2.2 - fix botones admin manage */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -252,7 +251,7 @@ function AdminPanel(){
     <main style={{maxWidth:1100,margin:"0 auto",padding:"28px 24px 60px"}}>
       {view==="dashboard"&&<AdminDashboard onCreate={function(){setView("create")}} onOpen={openEval}/>}
       {view==="create"&&<AdminCreate onDone={function(ev){openEval(ev)}} onBack={goHome}/>}
-      {view==="manage"&&activeEval&&<AdminManage evalData={activeEval} onBack={goHome}/>}
+      {view==="manage"&&activeEval&&<AdminManage evalData={activeEval} onBack={goHome} onOpen={openEval}/>}
     </main>
   </div>);
 }
@@ -271,6 +270,16 @@ function AdminDashboard(p){
     e.stopPropagation();
     supabase.from("evaluations").update({estado:"activa"}).eq("id",ev.id).then(function(res){
       if(!res.error){setEvals(evals.map(function(x){return x.id===ev.id?Object.assign({},x,{estado:"activa"}):x}))}
+    });
+  }
+
+  function deleteEval(ev,e){
+    e.stopPropagation();
+    if(!window.confirm("¿Eliminar la evaluación ""+( ev.co&&ev.co.nombre||"esta evaluación")+""? Esta acción no se puede deshacer y eliminará todas las respuestas.")) return;
+    supabase.from("responses").delete().eq("eval_id",ev.id).then(function(){
+      supabase.from("evaluations").delete().eq("id",ev.id).then(function(res){
+        if(!res.error) setEvals(evals.filter(function(x){return x.id!==ev.id}));
+      });
     });
   }
 
@@ -312,6 +321,7 @@ function AdminDashboard(p){
           <div style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:600,color:nR>0?T.green:T.gray300}}>{nR}</div><div style={{fontSize:11,color:T.gray400}}>Respuestas</div></div>
           <div style={{fontSize:11,padding:"6px 12px",borderRadius:20,background:estStyle.bg,color:estStyle.color,fontWeight:600}}>{estStyle.label}</div>
           {isBorrador&&<button onClick={function(e){launchEval(ev,e)}} style={{padding:"8px 16px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar</button>}
+          <button onClick={function(e){deleteEval(ev,e)}} style={{padding:"8px 12px",borderRadius:8,border:"1px solid "+T.red,background:"rgba(201,48,62,0.05)",color:T.red,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>🗑</button>
         </div>
       </div>);
     })}</div>}
@@ -360,13 +370,35 @@ function AdminManage(p){
     fetchR();var i=setInterval(fetchR,5000);return function(){clearInterval(i)};
   },[ev.id]);
 
+  var _editing=useState(null);var editing=_editing[0];var setEditing=_editing[1];
   var isBorrador=!evalData.estado||evalData.estado==="borrador";
   var isLanzada=evalData.estado==="activa"||evalData.estado==="cerrada";
 
   function launch(){
     if(!window.confirm("¿Confirmas el lanzamiento? Los encuestados podrán acceder con el código de acceso.")) return;
     supabase.from("evaluations").update({estado:"activa"}).eq("id",ev.id).then(function(res){
-      if(!res.error) setEvalData(Object.assign({},evalData,{estado:"activa"}));
+      if(!res.error){
+        var updated=Object.assign({},evalData,{estado:"activa"});
+        setEvalData(updated);
+        p.onBack&&p.onBack();
+        setTimeout(function(){p.onOpen&&p.onOpen(updated)},50);
+      }
+    });
+  }
+
+  function deleteEvalManage(){
+    if(!window.confirm("¿Eliminar esta evaluación? Esta acción no se puede deshacer y eliminará todas las respuestas.")) return;
+    supabase.from("responses").delete().eq("eval_id",ev.id).then(function(){
+      supabase.from("evaluations").delete().eq("id",ev.id).then(function(res){
+        if(!res.error) p.onBack&&p.onBack();
+      });
+    });
+  }
+
+  function saveEdit(field,value){
+    var update={};update[field]=value;
+    supabase.from("evaluations").update(update).eq("id",ev.id).then(function(res){
+      if(!res.error) setEvalData(Object.assign({},evalData,update));
     });
   }
 
@@ -375,7 +407,7 @@ function AdminManage(p){
     window.open(url,"_blank");
   }
 
-  var tabs=[{k:"tracking",l:"Seguimiento"},{k:"results",l:"Resultados"},{k:"informe",l:"📄 Informe PDF"}];
+  var tabs=[{k:"tracking",l:"Seguimiento"},{k:"results",l:"Resultados"},{k:"informe",l:"📄 Informe PDF"},{k:"editar",l:"✏️ Editar"}];
   return(<div>
     <div style={{marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
       <div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>{evalData.co?evalData.co.nombre:"Evaluación"}</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{evalData.co?evalData.co.pais:""}{evalData.co&&evalData.co.sector?" · "+evalData.co.sector:""}</p></div>
@@ -383,14 +415,89 @@ function AdminManage(p){
         <button onClick={previewEval} style={{padding:"9px 18px",borderRadius:8,border:"1px solid "+T.brand,background:T.white,color:T.brand,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>👁 Vista previa</button>
         {!isLanzada&&<button onClick={launch} style={{padding:"9px 18px",borderRadius:8,border:"none",background:T.brand,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🚀 Lanzar encuesta</button>}
         {isLanzada&&<div style={{padding:"7px 14px",borderRadius:8,background:T.greenLight,color:T.green,fontSize:12,fontWeight:600}}>✓ Lanzada</div>}
+        <button onClick={deleteEvalManage} style={{padding:"9px 14px",borderRadius:8,border:"1px solid "+T.red,background:"rgba(201,48,62,0.05)",color:T.red,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>🗑 Eliminar</button>
       </div>
     </div>
-    {!isLanzada&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Esta evaluación aún no ha sido lanzada formalmente. Haz clic en "Lanzar encuesta" para activarla.</div>}
+    {isBorrador&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Borrador — Esta evaluación aún no ha sido lanzada. Los encuestados no pueden acceder hasta que hagas clic en "Lanzar encuesta".</div>}
     {isLanzada&&resps.length>0&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(201,48,62,0.06)",border:"1px solid rgba(201,48,62,0.2)",marginBottom:16,fontSize:13,color:T.red,fontWeight:500}}>⚠️ Hay {resps.length} respuesta{resps.length!==1?"s":""} registrada{resps.length!==1?"s":""}. Los cambios que realices afectarán a encuestados activos.</div>}
     <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{tabs.map(function(t){return <button key={t.k} onClick={function(){setTab(t.k)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:tab===t.k?T.white:"transparent",color:tab===t.k?T.brand:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:tab===t.k?T.shadow:"none"}}>{t.l}</button>})}</div>
     {tab==="tracking"&&<A5Track evalId={ev.id} resps={resps} co={evalData.co||{}}/>}
     {tab==="results"&&<A6Results resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]}/>}
     {tab==="informe"&&<A7Informe resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]}/>}
+    {tab==="editar"&&<AdminEdit evalData={evalData} onSave={function(updated){setEvalData(updated)}} resps={resps}/>}
+  </div>);
+}
+
+/* === ADMIN EDIT (editar evaluación existente) === */
+function AdminEdit(p){
+  var ev=p.evalData;
+  var _sec=useState("empresa");var sec=_sec[0];var setSec=_sec[1];
+  var _saving=useState(false);var saving=_saving[0];var setSaving=_saving[1];
+  var _co=useState(Object.assign({},ev.co||{}));var co=_co[0];var setCo=_co[1];
+  var _sel=useState(ev.sel||{estadios:[],afirmaciones:[],abiertas:[]});var sel=_sel[0];var setSel=_sel[1];
+  var _mand=useState(ev.mandatory||{});var mandatory=_mand[0];var setMandatory=_mand[1];
+  var _comites=useState(ev.comites||[]);var comites=_comites[0];var setComites=_comites[1];
+  var _ca=useState(ev.custom_afirmaciones||[]);var customAfirm=_ca[0];var setCustomAfirm=_ca[1];
+  var _cca=useState(ev.custom_comite_afirmaciones||[]);var customComiteAfirm=_cca[0];var setCustomComiteAfirm=_cca[1];
+  var _list5PA=useState(ev.list5PA||[]);var list5PA=_list5PA[0];var setList5PA=_list5PA[1];
+  var _list6AC=useState(ev.list6AC||[]);var list6AC=_list6AC[0];var setList6AC=_list6AC[1];
+  var _sca=useState(ev.selComiteAbiertas||[]);var selComiteAbiertas=_sca[0];var setSelComiteAbiertas=_sca[1];
+
+  var hasResps=p.resps&&p.resps.length>0;
+
+  function save(){
+    setSaving(true);
+    var update={co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT};
+    supabase.from("evaluations").update(update).eq("id",ev.id).then(function(res){
+      setSaving(false);
+      if(!res.error){p.onSave&&p.onSave(Object.assign({},ev,update));alert("Cambios guardados correctamente.")}
+      else{alert("Error al guardar: "+res.error.message)}
+    });
+  }
+
+  var editSecs=[{k:"empresa",l:"Empresa"},{k:"preguntas",l:"Preguntas"},{k:"comites",l:"Comités"},{k:"abiertas",l:"Abiertas"}];
+  var iS={width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray900,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"};
+  var lS={fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8};
+
+  return(<div>
+    {hasResps&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(201,48,62,0.06)",border:"1px solid rgba(201,48,62,0.2)",marginBottom:16,fontSize:13,color:T.red}}>⚠️ Hay {p.resps.length} respuesta{p.resps.length!==1?"s":""} registrada{p.resps.length!==1?"s":""}. Los cambios afectarán a encuestados activos.</div>}
+    <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:20}}>{editSecs.map(function(s){return <button key={s.k} onClick={function(){setSec(s.k)}} style={{flex:1,padding:"9px",borderRadius:8,border:"none",background:sec===s.k?T.white:"transparent",color:sec===s.k?T.brand:T.gray500,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody,boxShadow:sec===s.k?T.shadow:"none"}}>{s.l}</button>})}</div>
+
+    {sec==="empresa"&&<div>
+      <Cd style={{marginBottom:16}}>
+        <div style={{fontSize:13,fontWeight:600,color:T.brand,marginBottom:16}}>Datos generales</div>
+        {[{k:"nombre",l:"NOMBRE DE LA EMPRESA",req:true},{k:"sector",l:"SECTOR"},{k:"anio",l:"AÑO DE EVALUACIÓN",req:true},{k:"equipo",l:"EQUIPO CONSULTOR"}].map(function(f){return <div key={f.k} style={{marginBottom:14}}><label style={lS}>{f.l}{f.req?" *":""}</label><input value={co[f.k]||""} onChange={function(e){setCo(Object.assign({},co,{[f.k]:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
+        <div style={{marginBottom:14}}><label style={lS}>PAÍS</label>
+          <select value={co.pais||""} onChange={function(e){var preset=TERM_PRESETS[e.target.value]||TERM_DEFAULT;setCo(Object.assign({},co,{pais:e.target.value,terminologia:Object.assign({},preset)}))}} style={iS}>
+            {["Colombia","México","Guatemala","Perú","Chile","Argentina","Ecuador","Brasil","Bolivia","Venezuela","Costa Rica","Panamá","Honduras","El Salvador","Nicaragua","República Dominicana","Paraguay","Uruguay","Otro"].map(function(px){return <option key={px} value={px}>{px}</option>})}
+          </select>
+        </div>
+        <div style={{display:"flex",gap:12,marginBottom:14}}>
+          <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE INICIO</label><input type="datetime-local" value={co.fechaInicio||""} onChange={function(e){setCo(Object.assign({},co,{fechaInicio:e.target.value}))}} style={iS}/></div>
+          <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE CIERRE</label><input type="datetime-local" value={co.fechaFin||""} onChange={function(e){setCo(Object.assign({},co,{fechaFin:e.target.value}))}} style={iS}/></div>
+        </div>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:12,fontWeight:600,color:T.teal,marginBottom:10}}>Personas de contacto</div>
+          {(co.contactos||[{nombre:"",correo:"",telefono:""}]).map(function(c,i){return <div key={i} style={{display:"flex",gap:8,marginBottom:8}}>
+            <input value={c.nombre||""} onChange={function(e){var cs=(co.contactos||[]).slice();cs[i]=Object.assign({},cs[i],{nombre:e.target.value});setCo(Object.assign({},co,{contactos:cs}))}} placeholder="Nombre" style={Object.assign({},iS,{flex:2})}/>
+            <input value={c.correo||""} onChange={function(e){var cs=(co.contactos||[]).slice();cs[i]=Object.assign({},cs[i],{correo:e.target.value});setCo(Object.assign({},co,{contactos:cs}))}} placeholder="Correo" style={Object.assign({},iS,{flex:2})}/>
+            <input value={c.telefono||""} onChange={function(e){var cs=(co.contactos||[]).slice();cs[i]=Object.assign({},cs[i],{telefono:e.target.value});setCo(Object.assign({},co,{contactos:cs}))}} placeholder="Teléfono" style={Object.assign({},iS,{flex:1.5})}/>
+          </div>})}
+        </div>
+      </Cd>
+      <Cd style={{borderLeft:"4px solid "+T.brand,background:"rgba(120,35,220,0.02)"}}>
+        <div style={{fontSize:13,fontWeight:600,color:T.brand,marginBottom:12}}>Terminología del órgano</div>
+        {[{k:"organo",l:"NOMBRE DEL ÓRGANO"},{k:"presidente",l:"PRESIDENTE"},{k:"miembros",l:"MIEMBROS"},{k:"secretaria",l:"SECRETARÍA"},{k:"sesiones",l:"SESIONES"}].map(function(f){return <div key={f.k} style={{marginBottom:10}}><label style={{fontSize:10,fontWeight:600,color:T.gray500,display:"block",marginBottom:4,letterSpacing:0.8}}>{f.l}</label><input value={(co.terminologia||TERM_DEFAULT)[f.k]||""} onChange={function(e){var t=Object.assign({},co.terminologia||TERM_DEFAULT);t[f.k]=e.target.value;setCo(Object.assign({},co,{terminologia:t}))}} style={Object.assign({},iS,{fontSize:13})} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
+      </Cd>
+    </div>}
+
+    {sec==="preguntas"&&<A1 sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} customAfirm={customAfirm} setCustomAfirm={setCustomAfirm} go={function(){setSec("comites")}} back={function(){setSec("empresa")}}/>}
+    {sec==="comites"&&<A2Comites comites={comites} setComites={setComites} customComiteAfirm={customComiteAfirm} setCustomComiteAfirm={setCustomComiteAfirm} mandatory={mandatory} setMandatory={setMandatory} selComiteAbiertas={selComiteAbiertas} setSelComiteAbiertas={setSelComiteAbiertas} go={function(){setSec("abiertas")}} back={function(){setSec("preguntas")}}/>}
+    {sec==="abiertas"&&<A3Abiertas sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} list5PA={list5PA} setList5PA={setList5PA} list6AC={list6AC} setList6AC={setList6AC} go={function(){setSec("empresa")}} back={function(){setSec("comites")}}/>}
+
+    <div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}>
+      <button onClick={save} disabled={saving} style={{padding:"13px 32px",borderRadius:8,border:"none",background:saving?T.gray200:T.brand,color:saving?T.gray400:"#fff",fontSize:14,fontWeight:600,cursor:saving?"not-allowed":"pointer",fontFamily:T.fontBody}}>{saving?"Guardando...":"💾 Guardar cambios"}</button>
+    </div>
   </div>);
 }
 
