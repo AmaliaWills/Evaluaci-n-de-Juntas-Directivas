@@ -1,4 +1,5 @@
 /* eslint-disable */
+/* APP v3.0 - editar eliminar lanzar preview */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
