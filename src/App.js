@@ -382,17 +382,17 @@ function A0(p){
         <div style={{flex:1}}><label style={lS}>DURACIÓN ESTIMADA MÍNIMA (min)</label><input type="number" value={co.durMin||"30"} onChange={function(e){p.setCo(Object.assign({},co,{durMin:e.target.value}))}} placeholder="30" style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
         <div style={{flex:1}}><label style={lS}>DURACIÓN ESTIMADA MÁXIMA (min)</label><input type="number" value={co.durMax||"45"} onChange={function(e){p.setCo(Object.assign({},co,{durMax:e.target.value}))}} placeholder="45" style={iS} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
       </div>
+      <div style={{marginBottom:16,paddingTop:8,borderTop:"1px solid "+T.gray100}}>
+        <div style={{fontSize:12,fontWeight:600,color:T.amber,marginBottom:10}}>DISPONIBILIDAD DE LA ENCUESTA *</div>
+        <div style={{display:"flex",gap:12}}>
+          <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE INICIO *</label><input type="datetime-local" value={co.fechaInicio||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaInicio:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+          <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE CIERRE *</label><input type="datetime-local" value={co.fechaFin||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaFin:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+        </div>
+      </div>
       <button onClick={p.go} disabled={!ok} style={{width:"100%",padding:"14px",borderRadius:8,border:"none",background:ok?T.brand:T.gray200,color:ok?"#fff":T.gray400,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",fontFamily:T.fontBody}}>Continuar</button>
     </Cd>
 
-    <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.amber}}>
-      <div style={{fontSize:13,fontWeight:600,color:T.amber,marginBottom:4}}>Disponibilidad de la encuesta *</div>
-      <p style={{fontSize:12,color:T.gray500,margin:"0 0 14px",lineHeight:1.5}}>Define el rango de fechas en que los encuestados podrán acceder.</p>
-      <div style={{display:"flex",gap:12}}>
-        <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE INICIO *</label><input type="datetime-local" value={co.fechaInicio||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaInicio:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
-        <div style={{flex:1}}><label style={lS}>FECHA Y HORA DE CIERRE *</label><input type="datetime-local" value={co.fechaFin||""} onChange={function(e){p.setCo(Object.assign({},co,{fechaFin:e.target.value}))}} style={iS} onFocus={function(e){e.target.style.borderColor=T.amber}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
-      </div>
-    </Cd>
+
 
     <Cd style={{marginBottom:16,borderLeft:"4px solid "+T.teal}}>
       <div style={{fontSize:13,fontWeight:600,color:T.teal,marginBottom:4}}>Personas de contacto</div>
@@ -1144,8 +1144,8 @@ function EvalPanel(){
         var co2=evalData.co||{};
         var instr2=co2.instrucciones||INSTR_DEFAULT;
         var organo2=(evalData.terminologia&&evalData.terminologia.organo)||(co2.terminologia&&co2.terminologia.organo)||"Junta Directiva";
-        var txt=(instr2.general||INSTR_DEFAULT.general)
-          .replace(/Junta Directiva/g,organo2)
+        var terms2=evalData.terminologia&&evalData.terminologia.organo?evalData.terminologia:(co2.terminologia&&co2.terminologia.organo?co2.terminologia:TERM_DEFAULT);
+        var txt=applyTerms((instr2.general||INSTR_DEFAULT.general),terms2)
           .replace("{empresa}",co2.nombre||"la empresa")
           .replace("{fechaInicio}",co2.fechaInicio?new Date(co2.fechaInicio).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
           .replace("{fechaFin}",co2.fechaFin?new Date(co2.fechaFin).toLocaleString("es-CO",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"por definir")
