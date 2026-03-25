@@ -1,4 +1,5 @@
 /* eslint-disable */
+/* v2.2 - fix botones admin manage */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -384,7 +385,7 @@ function AdminManage(p){
         {isLanzada&&<div style={{padding:"7px 14px",borderRadius:8,background:T.greenLight,color:T.green,fontSize:12,fontWeight:600}}>✓ Lanzada</div>}
       </div>
     </div>
-    {!isLanzada&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Esta evaluación aún no ha sido lanzada formalmente. Haz clic en "Lanzar encuesta" para activarla oficialmente.</div>}
+    {!isLanzada&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(212,134,10,0.08)",border:"1px solid rgba(212,134,10,0.3)",marginBottom:16,fontSize:13,color:"#D4860A",fontWeight:500}}>📝 Esta evaluación aún no ha sido lanzada formalmente. Haz clic en "Lanzar encuesta" para activarla.</div>}
     {isLanzada&&resps.length>0&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(201,48,62,0.06)",border:"1px solid rgba(201,48,62,0.2)",marginBottom:16,fontSize:13,color:T.red,fontWeight:500}}>⚠️ Hay {resps.length} respuesta{resps.length!==1?"s":""} registrada{resps.length!==1?"s":""}. Los cambios que realices afectarán a encuestados activos.</div>}
     <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{tabs.map(function(t){return <button key={t.k} onClick={function(){setTab(t.k)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:tab===t.k?T.white:"transparent",color:tab===t.k?T.brand:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:tab===t.k?T.shadow:"none"}}>{t.l}</button>})}</div>
     {tab==="tracking"&&<A5Track evalId={ev.id} resps={resps} co={evalData.co||{}}/>}
