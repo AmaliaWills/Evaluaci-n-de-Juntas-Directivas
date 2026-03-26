@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.2b - fix customEstadios undefined */
+/* APP v4.2c - fix all procE customEstadios */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -883,7 +883,7 @@ function exportExcel(resps,co,sel,comites,customAfirm,customComiteAfirm){
     resps.forEach(function(r){var ab=r.answers&&r.answers.abiertas?r.answers.abiertas:{};Object.keys(ab).forEach(function(id){if(!ab[id])return;var q=ABIERTAS.find(function(p){return p.id===id})||ABIERTAS_COMITE.find(function(p){return p.id===id});var tema=q?q.tema:id;var val=ab[id];if(typeof val==="object"&&val.t1){oRows.push([r.respondent?r.respondent.nombre:"",r.respondent?r.respondent.cargo:"",tema+" (1)",val.t1]);oRows.push([r.respondent?r.respondent.nombre:"",r.respondent?r.respondent.cargo:"",tema+" (2)",val.t2||""]);oRows.push([r.respondent?r.respondent.nombre:"",r.respondent?r.respondent.cargo:"",tema+" (3)",val.t3||""])}else if(Array.isArray(val)){oRows.push([r.respondent?r.respondent.nombre:"",r.respondent?r.respondent.cargo:"",tema,val.join(", ")])}else{oRows.push([r.respondent?r.respondent.nombre:"",r.respondent?r.respondent.cargo:"",tema,val])}})});
     var oWs=XLSX.utils.aoa_to_sheet([oHeaders].concat(oRows));XLSX.utils.book_append_sheet(wb,oWs,"Abiertas");
   }
-  var sumRows=[["Empresa",co.nombre||""],["País",co.pais||""],["Sector",co.sector||""],["Año",co.anio||""],["Equipo consultor",co.equipo||""],["Total participantes",resps.length],["Promedio Estadios",procE(resps,sel).avg?procE(resps,sel).avg.toFixed(2):"N/A"],["Promedio Afirmaciones",procA(resps,sel,allAfirm).avg?procA(resps,sel,allAfirm).avg.toFixed(2):"N/A"]];
+  var sumRows=[["Empresa",co.nombre||""],["País",co.pais||""],["Sector",co.sector||""],["Año",co.anio||""],["Equipo consultor",co.equipo||""],["Total participantes",resps.length],["Promedio Estadios",procE(resps,sel,p.customEstadios||[]).avg?procE(resps,sel,p.customEstadios||[]).avg.toFixed(2):"N/A"],["Promedio Afirmaciones",procA(resps,sel,allAfirm).avg?procA(resps,sel,allAfirm).avg.toFixed(2):"N/A"]];
   var sumWs=XLSX.utils.aoa_to_sheet([["Métrica","Valor"]].concat(sumRows));XLSX.utils.book_append_sheet(wb,sumWs,"Resumen");
   XLSX.writeFile(wb,"Resultados_"+(co.nombre||"Evaluacion").replace(/[^a-zA-Z0-9]/g,"_")+".xlsx");
 }
