@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.2 - custom estadios, mandatory default, PPTX terms */
+/* APP v4.2b - fix customEstadios undefined */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -518,7 +518,7 @@ function AdminEdit(p){
       </Cd>
     </div>}
 
-    {sec==="preguntas"&&<A1 sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} customAfirm={customAfirm} setCustomAfirm={setCustomAfirm} go={function(){setSec("comites")}} back={function(){setSec("empresa")}}/>}
+    {sec==="preguntas"&&<A1 sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} customAfirm={customAfirm} setCustomAfirm={setCustomAfirm} customEstadios={[]} setCustomEstadios={function(){}} go={function(){setSec("comites")}} back={function(){setSec("empresa")}}/>}
     {sec==="comites"&&<A2Comites comites={comites} setComites={setComites} customComiteAfirm={customComiteAfirm} setCustomComiteAfirm={setCustomComiteAfirm} mandatory={mandatory} setMandatory={setMandatory} selComiteAbiertas={selComiteAbiertas} setSelComiteAbiertas={setSelComiteAbiertas} go={function(){setSec("abiertas")}} back={function(){setSec("preguntas")}}/>}
     {sec==="abiertas"&&<A3Abiertas sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} list5PA={list5PA} setList5PA={setList5PA} list6AC={list6AC} setList6AC={setList6AC} go={function(){setSec("empresa")}} back={function(){setSec("comites")}}/>}
 
@@ -895,7 +895,7 @@ function A6Results(p){
   if(!p.resps.length)return <div style={{textAlign:"center",padding:60}}><h2 style={{fontFamily:T.font,fontSize:24,fontWeight:400}}>Sin respuestas</h2></div>;
   var allAfirm=AFIRMACIONES.concat(p.customAfirm||[]);
   var allComiteAfirm=COMITE_AFIRMACIONES_STD.concat(p.customComiteAfirm||[]);
-  var eD=procE(p.resps,p.sel,p.customEstadios);var aD=procA(p.resps,p.sel,allAfirm);var oD=procO(p.resps,p.sel);
+  var eD=procE(p.resps,p.sel,p.customEstadios||[]);var aD=procA(p.resps,p.sel,allAfirm);var oD=procO(p.resps,p.sel);
   var cD=procC(p.resps,p.comites||[],allComiteAfirm);
   return(<div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:4}}>
@@ -1055,7 +1055,7 @@ function A7Informe(p){
       s2.addText("Análisis de resultados del levantamiento de perspectivas",{x:0.5,y:0.28,w:W-1,h:0.35,fontSize:13,bold:true,color:BRAND,fontFace:"Arial"});
       s2.addText(co.nombre||"",{x:0.5,y:0.65,w:W-1,h:0.2,fontSize:9,color:GRAY,fontFace:"Arial"});
       s2.addShape(pptx.ShapeType.line,{x:0,y:0.88,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
-      var eD2=procE(p.resps,p.sel,p.customEstadios);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
+      var eD2=procE(p.resps,p.sel,p.customEstadios||[]);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
       var tocSecs=[];
       if(eD2.qs.length)tocSecs.push({t:"Estadios de Excelencia",s:eD2.qs.length+" dimensiones",c:BRAND});
       if(aD2.qs.length)tocSecs.push({t:"Resultados Afirmaciones",s:aD2.qs.length+" afirmaciones",c:BRAND});
@@ -1088,7 +1088,7 @@ function A7Informe(p){
       addShell(s2,pn,co.nombre);pn++;
 
       /* ══════ ESTADIOS ══════ */
-      var eD=procE(p.resps,p.sel,p.customEstadios);
+      var eD=procE(p.resps,p.sel,p.customEstadios||[]);
       if(eD.qs.length>0){
         var sE=pptx.addSlide();
         var sortedE=eD.qs.slice().sort(function(a,b){return b.avg-a.avg});
