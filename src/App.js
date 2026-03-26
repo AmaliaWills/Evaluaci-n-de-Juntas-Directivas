@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.1 - PPTX inches fix */
+/* APP v4.2 - custom estadios, mandatory default, PPTX terms */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -350,6 +350,7 @@ function AdminCreate(p){
   var _sel=useState({estadios:[],afirmaciones:[],abiertas:[]});var sel=_sel[0];var setSel=_sel[1];
   var _mand=useState({});var mandatory=_mand[0];var setMandatory=_mand[1];
   var _ca=useState([]);var customAfirm=_ca[0];var setCustomAfirm=_ca[1];
+  var _ce=useState([]);var customEstadios=_ce[0];var setCustomEstadios=_ce[1];
   var _cm=useState([]);var comites=_cm[0];var setComites=_cm[1];
   var _cca=useState([]);var customComiteAfirm=_cca[0];var setCustomComiteAfirm=_cca[1];
   var _list5PA=useState([]);var list5PA=_list5PA[0];var setList5PA=_list5PA[1];
@@ -358,7 +359,7 @@ function AdminCreate(p){
 
   function generate(){
     var id="ev"+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
-    var payload={id:id,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT,estado:"borrador"};
+    var payload={id:id,co:co,sel:sel,mandatory:mandatory,comites:comites,custom_estadios:customEstadios,custom_afirmaciones:customAfirm,custom_comite_afirmaciones:customComiteAfirm,"list5PA":list5PA,"list6AC":list6AC,selComiteAbiertas:selComiteAbiertas,terminologia:co.terminologia||TERM_DEFAULT,estado:"borrador"};
     supabase.from("evaluations").insert(payload).then(function(res){
       if(!res.error){p.onDone(Object.assign({},payload,{at:new Date().toISOString()}))}
       else{console.error("Supabase error:",JSON.stringify(res.error));alert("Error: "+res.error.message)}
@@ -368,7 +369,7 @@ function AdminCreate(p){
   return(<div>
     <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{navs.map(function(n){var active=step===n.s;return <button key={n.s} onClick={function(){if(n.s<=step)setStep(n.s)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:active?T.white:"transparent",color:active?T.brand:T.gray500,cursor:n.s<=step?"pointer":"default",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:active?T.shadow:"none"}}>{n.l}</button>})}</div>
     {step===0&&<A0 co={co} setCo={setCo} go={function(){setStep(1)}}/>}
-    {step===1&&<A1 sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} customAfirm={customAfirm} setCustomAfirm={setCustomAfirm} go={function(){setStep(2)}} back={function(){setStep(0)}}/>}
+    {step===1&&<A1 sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} customAfirm={customAfirm} setCustomAfirm={setCustomAfirm} customEstadios={customEstadios} setCustomEstadios={setCustomEstadios} go={function(){setStep(2)}} back={function(){setStep(0)}}/>}
     {step===2&&<A2Comites comites={comites} setComites={setComites} customComiteAfirm={customComiteAfirm} setCustomComiteAfirm={setCustomComiteAfirm} mandatory={mandatory} setMandatory={setMandatory} selComiteAbiertas={selComiteAbiertas} setSelComiteAbiertas={setSelComiteAbiertas} go={function(){setStep(3)}} back={function(){setStep(1)}}/>}
     {step===3&&<A3Abiertas sel={sel} setSel={setSel} mandatory={mandatory} setMandatory={setMandatory} list5PA={list5PA} setList5PA={setList5PA} list6AC={list6AC} setList6AC={setList6AC} go={function(){setStep(4)}} back={function(){setStep(2)}}/>}
     {step===4&&<A4Preview co={co} sel={sel} comites={comites} customAfirm={customAfirm} customComiteAfirm={customComiteAfirm} mandatory={mandatory} list5PA={list5PA} list6AC={list6AC} gen={generate} back={function(){setStep(3)}} preview={function(){
@@ -448,8 +449,8 @@ function AdminManage(p){
     {isLanzada&&resps.length>0&&<div style={{padding:"10px 16px",borderRadius:8,background:"rgba(201,48,62,0.06)",border:"1px solid rgba(201,48,62,0.2)",marginBottom:16,fontSize:13,color:T.red,fontWeight:500}}>⚠️ Hay {resps.length} respuesta{resps.length!==1?"s":""} registrada{resps.length!==1?"s":""}. Los cambios que realices afectarán a encuestados activos.</div>}
     <div style={{display:"flex",gap:1,background:T.gray200,borderRadius:10,padding:2,marginBottom:24}}>{tabs.map(function(t){return <button key={t.k} onClick={function(){setTab(t.k)}} style={{flex:1,padding:"10px",borderRadius:8,border:"none",background:tab===t.k?T.white:"transparent",color:tab===t.k?T.brand:T.gray500,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody,boxShadow:tab===t.k?T.shadow:"none"}}>{t.l}</button>})}</div>
     {tab==="tracking"&&<A5Track evalId={ev.id} resps={resps} co={evalData.co||{}}/>}
-    {tab==="results"&&<A6Results resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]}/>}
-    {tab==="informe"&&<A7Informe resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]}/>}
+    {tab==="results"&&<A6Results resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]} customEstadios={evalData.custom_estadios||[]}/>}
+    {tab==="informe"&&<A7Informe resps={resps} co={evalData.co||{}} sel={evalData.sel||{}} comites={evalData.comites||[]} customAfirm={evalData.custom_afirmaciones||[]} customComiteAfirm={evalData.custom_comite_afirmaciones||[]} customEstadios={evalData.custom_estadios||[]}/>}
     {tab==="editar"&&<AdminEdit evalData={evalData} onSave={function(updated){setEvalData(updated)}} resps={resps}/>}
   </div>);
 }
@@ -632,12 +633,19 @@ function A1(p){
   var _modal=useState(false);var showModal=_modal[0];var setShowModal=_modal[1];
   var _newTema=useState("");var newTema=_newTema[0];var setNewTema=_newTema[1];
   var _newTexto=useState("");var newTexto=_newTexto[0];var setNewTexto=_newTexto[1];
+  var _eModal=useState(false);var showEModal=_eModal[0];var setShowEModal=_eModal[1];
+  var _eTema=useState("");var eTema=_eTema[0];var setETema=_eTema[1];
+  var _eE1=useState("");var eE1=_eE1[0];var setEE1=_eE1[1];
+  var _eE2=useState("");var eE2=_eE2[0];var setEE2=_eE2[1];
+  var _eE3=useState("");var eE3=_eE3[0];var setEE3=_eE3[1];
+  var _eE4=useState("");var eE4=_eE4[0];var setEE4=_eE4[1];
 
-  function tog(t,id){var c=sel[t];p.setSel(Object.assign({},sel,{[t]:c.includes(id)?c.filter(function(x){return x!==id}):c.concat([id])}))}
-  function all(t){var a=t==="estadios"?ESTADIOS:getAllAfirmaciones();p.setSel(Object.assign({},sel,{[t]:a.map(function(q){return q.id})}))}
+  function tog(t,id){var c=sel[t];var adding=!c.includes(id);p.setSel(Object.assign({},sel,{[t]:adding?c.concat([id]):c.filter(function(x){return x!==id})}));if(adding){var m=Object.assign({},p.mandatory);m[id]=true;p.setMandatory(m)}}
+  function all(t){var a=t==="estadios"?getAllEstadios():getAllAfirmaciones();p.setSel(Object.assign({},sel,{[t]:a.map(function(q){return q.id})}))}
   function clr(t){p.setSel(Object.assign({},sel,{[t]:[]}))}
   function toggleMand(id){var m=Object.assign({},p.mandatory);if(m[id])delete m[id];else m[id]=true;p.setMandatory(m)}
   function getAllAfirmaciones(){return AFIRMACIONES.concat(p.customAfirm)}
+  function getAllEstadios(){return ESTADIOS.concat(p.customEstadios||[])}
   function addCustomAfirm(){
     if(!newTema.trim()||!newTexto.trim()) return;
     var id="CA"+(p.customAfirm.length+1);
@@ -646,10 +654,20 @@ function A1(p){
     p.setSel(Object.assign({},sel,{afirmaciones:sel.afirmaciones.concat([id])}));
     setNewTema("");setNewTexto("");setShowModal(false);
   }
+  function addCustomEstadio(){
+    if(!eTema.trim()||!eE1.trim()||!eE2.trim()||!eE3.trim()||!eE4.trim()) return;
+    var id="CE"+(ESTADIOS.length+(p.customEstadios?p.customEstadios.length:0)+1);
+    var nw={id:id,tema:eTema.trim(),e1:eE1.trim(),e2:eE2.trim(),e3:eE3.trim(),e4:eE4.trim(),custom:true};
+    p.setCustomEstadios((p.customEstadios||[]).concat([nw]));
+    p.setSel(Object.assign({},sel,{estadios:sel.estadios.concat([id])}));
+    p.setMandatory(Object.assign({},p.mandatory,{[id]:true}));
+    setETema("");setEE1("");setEE2("");setEE3("");setEE4("");setShowEModal(false);
+  }
   var allAfirm=getAllAfirmaciones();
   var tot=sel.estadios.length+sel.afirmaciones.length;
-  var tabs=[{k:"estadios",l:"Estadios de Excelencia",n:sel.estadios.length,t:ESTADIOS.length},{k:"afirmaciones",l:"Afirmaciones",n:sel.afirmaciones.length,t:allAfirm.length}];
-  var qs=tab==="estadios"?ESTADIOS:allAfirm;
+  var tabs=[{k:"estadios",l:"Estadios de Excelencia",n:sel.estadios.length,t:allEstadios.length},{k:"afirmaciones",l:"Afirmaciones",n:sel.afirmaciones.length,t:allAfirm.length}];
+  var allEstadios=getAllEstadios();
+  var qs=tab==="estadios"?allEstadios:allAfirm;
 
   return(<div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:24}}><div><h1 style={{fontFamily:T.font,fontSize:28,fontWeight:400,margin:"0 0 4px"}}>Selección de Preguntas</h1><p style={{color:T.gray500,fontSize:14,margin:0}}>{tot} preguntas seleccionadas</p></div><div style={{display:"flex",gap:8}}><button onClick={p.back} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray700,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Atrás</button><button onClick={p.go} disabled={!tot} style={{padding:"10px 20px",borderRadius:8,border:"none",background:tot?T.brand:T.gray200,color:tot?"#fff":T.gray400,cursor:tot?"pointer":"not-allowed",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Siguiente: Comités</button></div></div>
@@ -658,6 +676,7 @@ function A1(p){
       <button onClick={function(){all(tab)}} style={{padding:"7px 16px",borderRadius:6,border:"1px solid "+T.brand,background:T.brandGhost,color:T.brand,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>Seleccionar todas</button>
       <button onClick={function(){clr(tab)}} style={{padding:"7px 16px",borderRadius:6,border:"1px solid "+T.gray200,background:T.white,color:T.gray500,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>Limpiar</button>
       {tab==="afirmaciones"&&<button onClick={function(){setShowModal(true)}} style={{padding:"7px 16px",borderRadius:6,border:"1px solid "+T.gold,background:"rgba(198,151,59,0.08)",color:T.gold,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>+ Crear Afirmación</button>}
+      {tab==="estadios"&&<button onClick={function(){setShowEModal(true)}} style={{padding:"7px 16px",borderRadius:6,border:"1px solid "+T.brand,background:T.brandGhost,color:T.brand,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:T.fontBody}}>+ Crear Estadio</button>}
     </div>
     <div style={{display:"flex",flexDirection:"column",gap:4}}>{qs.map(function(q){var on=sel[tab].includes(q.id);var isE=exp===q.id;var isMand=!!p.mandatory[q.id];return(<div key={q.id} style={{background:T.white,borderRadius:10,border:"1px solid "+(on?T.brand:T.gray200),overflow:"hidden",boxShadow:on?"0 0 0 1px "+T.brand:"none"}}>
       <div style={{display:"flex",alignItems:"center",padding:"14px 16px",cursor:"pointer",gap:12}} onClick={function(){tog(tab,q.id)}}><Ck on={on}/><div style={{flex:1}}><div style={{fontSize:14,fontWeight:600,color:T.gray900}}>{q.id}. {q.tema}{q.custom?" ✦":""}<MandBadge on={isMand}/></div></div>
@@ -675,6 +694,14 @@ function A1(p){
         <div style={{marginBottom:16}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>TEMA *</label><input value={newTema} onChange={function(e){setNewTema(e.target.value)}} placeholder="Ej: Evaluación del desempeño" style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
         <div style={{marginBottom:20}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>AFIRMACIÓN (en positivo) *</label><textarea value={newTexto} onChange={function(e){setNewTexto(e.target.value)}} rows={4} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box",resize:"vertical",lineHeight:1.6}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
         <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><button onClick={function(){setShowModal(false)}} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray700,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Cancelar</button><button onClick={addCustomAfirm} disabled={!newTema.trim()||!newTexto.trim()} style={{padding:"10px 24px",borderRadius:8,border:"none",background:newTema.trim()&&newTexto.trim()?T.brand:T.gray200,color:newTema.trim()&&newTexto.trim()?"#fff":T.gray400,cursor:newTema.trim()&&newTexto.trim()?"pointer":"not-allowed",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Crear Afirmación</button></div>
+      </div>
+    </div>}
+    {showEModal&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={function(){setShowEModal(false)}}>
+      <div style={{background:T.white,borderRadius:16,padding:32,maxWidth:620,width:"90%",boxShadow:T.shadowLg,maxHeight:"90vh",overflowY:"auto"}} onClick={function(e){e.stopPropagation()}}>
+        <h2 style={{fontFamily:T.font,fontSize:22,fontWeight:400,margin:"0 0 16px"}}>Crear Nuevo Estadio de Excelencia</h2>
+        <div style={{marginBottom:16}}><label style={{fontSize:11,fontWeight:600,color:T.gray500,display:"block",marginBottom:6,letterSpacing:0.8}}>TEMA *</label><input value={eTema} onChange={function(e){setETema(e.target.value)}} placeholder="Ej: Gobierno de datos" style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:14,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box"}} onFocus={function(e){e.target.style.borderColor=T.brand}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>
+        {[{k:eE1,set:setEE1,l:"ESTADIO 1 — Etapa Inicial",c:T.e1},{k:eE2,set:setEE2,l:"ESTADIO 2 — Cumplimiento Local",c:T.e2},{k:eE3,set:setEE3,l:"ESTADIO 3 — Estándares Internacionales",c:T.e3},{k:eE4,set:setEE4,l:"ESTADIO 4 — Alto Desempeño",c:T.e4}].map(function(f,i){return <div key={i} style={{marginBottom:14}}><label style={{fontSize:11,fontWeight:600,color:f.c,display:"block",marginBottom:6,letterSpacing:0.8}}>{f.l} *</label><textarea value={f.k} onChange={function(e){f.set(e.target.value)}} rows={2} style={{width:"100%",padding:"12px 16px",borderRadius:8,border:"1px solid "+T.gray200,fontSize:13,outline:"none",fontFamily:T.fontBody,boxSizing:"border-box",resize:"vertical",lineHeight:1.5}} onFocus={function(e){e.target.style.borderColor=f.c}} onBlur={function(e){e.target.style.borderColor=T.gray200}}/></div>})}
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:8}}><button onClick={function(){setShowEModal(false)}} style={{padding:"10px 20px",borderRadius:8,border:"1px solid "+T.gray200,background:T.white,color:T.gray700,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Cancelar</button><button onClick={addCustomEstadio} disabled={!eTema.trim()||!eE1.trim()||!eE2.trim()||!eE3.trim()||!eE4.trim()} style={{padding:"10px 24px",borderRadius:8,border:"none",background:eTema.trim()&&eE1.trim()&&eE2.trim()&&eE3.trim()&&eE4.trim()?T.brand:T.gray200,color:eTema.trim()&&eE1.trim()&&eE2.trim()&&eE3.trim()&&eE4.trim()?"#fff":T.gray400,cursor:eTema.trim()&&eE1.trim()&&eE2.trim()&&eE3.trim()&&eE4.trim()?"pointer":"not-allowed",fontSize:13,fontWeight:600,fontFamily:T.fontBody}}>Crear Estadio</button></div>
       </div>
     </div>}
   </div>);
@@ -868,7 +895,7 @@ function A6Results(p){
   if(!p.resps.length)return <div style={{textAlign:"center",padding:60}}><h2 style={{fontFamily:T.font,fontSize:24,fontWeight:400}}>Sin respuestas</h2></div>;
   var allAfirm=AFIRMACIONES.concat(p.customAfirm||[]);
   var allComiteAfirm=COMITE_AFIRMACIONES_STD.concat(p.customComiteAfirm||[]);
-  var eD=procE(p.resps,p.sel);var aD=procA(p.resps,p.sel,allAfirm);var oD=procO(p.resps,p.sel);
+  var eD=procE(p.resps,p.sel,p.customEstadios);var aD=procA(p.resps,p.sel,allAfirm);var oD=procO(p.resps,p.sel);
   var cD=procC(p.resps,p.comites||[],allComiteAfirm);
   return(<div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:4}}>
@@ -887,7 +914,7 @@ function A6Results(p){
 }
 
 /* ══════════ DATA PROCESSING ══════════ */
-function procE(r,s){var ids=(s&&s.estadios)||[];var qs=ESTADIOS.filter(function(q){return ids.includes(q.id)}).map(function(q){var a=r.map(function(x){return x.answers&&x.answers.estadios?x.answers.estadios[q.id]:undefined}).filter(function(v){return v!=null});var n=a.filter(function(v){return v>0});var d=[0,0,0,0,0];a.forEach(function(v){if(v>=0&&v<=4)d[v]++});return{id:q.id,tema:q.tema,dist:d,avg:n.length?n.reduce(function(s,v){return s+v},0)/n.length:0}});var av=qs.filter(function(q){return q.avg>0}).map(function(q){return q.avg});return{qs:qs,n:r.length,avg:av.length?av.reduce(function(s,v){return s+v},0)/av.length:0}}
+function procE(r,s,customEstadios){var ids=(s&&s.estadios)||[];var allE=ESTADIOS.concat(customEstadios||[]);var qs=allE.filter(function(q){return ids.includes(q.id)}).map(function(q){var a=r.map(function(x){return x.answers&&x.answers.estadios?x.answers.estadios[q.id]:undefined}).filter(function(v){return v!=null});var n=a.filter(function(v){return v>0});var d=[0,0,0,0,0];a.forEach(function(v){if(v>=0&&v<=4)d[v]++});return{id:q.id,tema:q.tema,dist:d,avg:n.length?n.reduce(function(s,v){return s+v},0)/n.length:0}});var av=qs.filter(function(q){return q.avg>0}).map(function(q){return q.avg});return{qs:qs,n:r.length,avg:av.length?av.reduce(function(s,v){return s+v},0)/av.length:0}}
 function procA(r,s,allAfirm){var ids=(s&&s.afirmaciones)||[];var qs=(allAfirm||AFIRMACIONES).filter(function(q){return ids.includes(q.id)}).map(function(q){var a=r.map(function(x){return x.answers&&x.answers.afirmaciones?x.answers.afirmaciones[q.id]:undefined}).filter(function(v){return v!=null});var n=a.filter(function(v){return v>0});var d=[0,0,0,0,0];a.forEach(function(v){if(v>=0&&v<=4)d[v]++});return{id:q.id,tema:q.tema,dist:d,avg:n.length?n.reduce(function(s,v){return s+v},0)/n.length:0}});var av=qs.filter(function(q){return q.avg>0}).map(function(q){return q.avg});return{qs:qs,n:r.length,avg:av.length?av.reduce(function(s,v){return s+v},0)/av.length:0}}
 function procO(r,s){var ids=(s&&s.abiertas)||[];var o=[];r.forEach(function(x){var ab=x.answers&&x.answers.abiertas?x.answers.abiertas:{};Object.keys(ab).forEach(function(id){if(!ids.includes(id)||!ab[id])return;var q=ABIERTAS.find(function(p){return p.id===id})||ABIERTAS_COMITE.find(function(p){return p.id===id});if(q)o.push({tema:q.tema,sec:q.sec,resp:typeof ab[id]==="object"?JSON.stringify(ab[id]):ab[id],who:x.respondent?x.respondent.nombre:"Anónimo"})})});return o}
 function procC(r,comites,allComiteAfirm){return comites.map(function(com){var qs=com.afirmaciones.map(function(afId){var af=allComiteAfirm.find(function(a){return a.id===afId});if(!af)return null;var a=r.map(function(x){return x.answers&&x.answers.comites&&x.answers.comites[com.id]?x.answers.comites[com.id][afId]:undefined}).filter(function(v){return v!=null});var n=a.filter(function(v){return v>0});var d=[0,0,0,0,0];a.forEach(function(v){if(v>=0&&v<=4)d[v]++});return{id:afId,tema:af.tema,dist:d,avg:n.length?n.reduce(function(s,v){return s+v},0)/n.length:0}}).filter(Boolean);var av=qs.filter(function(q){return q.avg>0}).map(function(q){return q.avg});return{nombre:com.nombre,id:com.id,qs:qs,avg:av.length?av.reduce(function(s,v){return s+v},0)/av.length:0}})}
@@ -949,6 +976,8 @@ function A7Informe(p){
       var pptx=new window.PptxGenJS();
       pptx.layout="LAYOUT_WIDE";
       var co=p.co||{};var N=p.resps.length;
+      var pptxTerms=(function(){var t=p.evalData&&p.evalData.terminologia&&p.evalData.terminologia.organo?p.evalData.terminologia:(co.terminologia&&co.terminologia.organo?co.terminologia:TERM_DEFAULT);if(t&&typeof t==="string"){try{t=JSON.parse(t)}catch(e){t=TERM_DEFAULT}}return(t&&t.organo)?t:TERM_DEFAULT;})();
+      function pt(text){return applyTerms(text,pptxTerms)}
       var BRAND="7823DC";var DARK="1E1E1E";var GRAY="636366";var LGRAY="C7C7CC";var WHITE="FFFFFF";
       var COL_E=["D2D2D2","787878","D2D2D2","C8A5F0","7823DC"];
       /* slide dimensions: 33.87 x 19.05 cm (WIDE) */
@@ -987,7 +1016,7 @@ function A7Informe(p){
       }
 
       function addHBar(slide,tema,dist,avg,rowY,barH,labelW,barX,barW,totalN,colors){
-        var label=tema.length>52?tema.substring(0,50)+"...":tema;
+        tema=pt(tema);var label=tema.length>52?tema.substring(0,50)+"...":tema;
         slide.addText(label,{x:RX,y:rowY,w:labelW,h:barH,fontSize:6.5,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
         var xPos=barX;
         dist.forEach(function(count,idx){
@@ -1026,7 +1055,7 @@ function A7Informe(p){
       s2.addText("Análisis de resultados del levantamiento de perspectivas",{x:0.5,y:0.28,w:W-1,h:0.35,fontSize:13,bold:true,color:BRAND,fontFace:"Arial"});
       s2.addText(co.nombre||"",{x:0.5,y:0.65,w:W-1,h:0.2,fontSize:9,color:GRAY,fontFace:"Arial"});
       s2.addShape(pptx.ShapeType.line,{x:0,y:0.88,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
-      var eD2=procE(p.resps,p.sel);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
+      var eD2=procE(p.resps,p.sel,p.customEstadios);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
       var tocSecs=[];
       if(eD2.qs.length)tocSecs.push({t:"Estadios de Excelencia",s:eD2.qs.length+" dimensiones",c:BRAND});
       if(aD2.qs.length)tocSecs.push({t:"Resultados Afirmaciones",s:aD2.qs.length+" afirmaciones",c:BRAND});
@@ -1059,12 +1088,12 @@ function A7Informe(p){
       addShell(s2,pn,co.nombre);pn++;
 
       /* ══════ ESTADIOS ══════ */
-      var eD=procE(p.resps,p.sel);
+      var eD=procE(p.resps,p.sel,p.customEstadios);
       if(eD.qs.length>0){
         var sE=pptx.addSlide();
         var sortedE=eD.qs.slice().sort(function(a,b){return b.avg-a.avg});
         var topE=sortedE[0];
-        var insE=topE?"Los resultados muestran que "+topE.tema.toLowerCase()+" alcanza un promedio de "+topE.avg.toFixed(1)+", en nivel de "+(topE.avg>=3.5?"Alto Desempeño":topE.avg>=2.5?"Estándares Internacionales":"Cumplimiento Local")+".":"Estadios de Excelencia";
+        var insE=topE?"Los resultados muestran que "+pt(topE.tema).toLowerCase()+" alcanza un promedio de "+topE.avg.toFixed(1)+", en nivel de "+(topE.avg>=3.5?"Alto Desempeño":topE.avg>=2.5?"Estándares Internacionales":"Cumplimiento Local")+".":"Estadios de Excelencia";
         addLeftCol(sE,insE);
         addLegend(sE,[{stripe:true,l:"Sin información"},{c:"787878",l:"Estadio 1"},{c:"D2D2D2",l:"Estadio 2"},{c:"C8A5F0",l:"Estadio 3"},{c:"7823DC",l:"Estadio 4"}],H-1.6);
         var yE=addSecHeader(sE,"Estadios de Excelencia","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","(N= "+N+")");
@@ -1077,8 +1106,8 @@ function A7Informe(p){
         /* zone labels */
         var z4=sortedE.filter(function(q){return q.avg>=3.5});
         var z3=sortedE.filter(function(q){return q.avg>=2.5&&q.avg<3.5});
-        if(z4.length)sE.addText("Estadio 4:\nAlto Desempeño",{x:bX+bW+0.15,y:yE,w:0.9,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
-        if(z3.length)sE.addText("Estadio 3:\nEstándares Internacionales",{x:bX+bW+0.15,y:yE+z4.length*(bH+bGap),w:0.9,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z4.length)sE.addText("E4: Alto\nDesempeño",{x:bX+bW+0.15,y:yE,w:0.85,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z3.length)sE.addText("E3: Estándares\nInternacionales",{x:bX+bW+0.15,y:yE+z4.length*(bH+bGap),w:0.85,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
         addShell(sE,pn,co.nombre);pn++;
       }
 
@@ -1088,7 +1117,7 @@ function A7Informe(p){
         var sA=pptx.addSlide();
         var sortedA=aD.qs.slice().sort(function(a,b){return b.avg-a.avg});
         var topA=sortedA[0];var botA=sortedA[sortedA.length-1];
-        var insA=topA?"Las afirmaciones muestran mayor acuerdo en "+topA.tema.toLowerCase()+(botA&&botA.id!==topA.id?", mientras "+botA.tema.toLowerCase()+" requiere atención":"")+".":"Resultados Afirmaciones";
+        var insA=topA?"Las afirmaciones muestran mayor acuerdo en "+pt(topA.tema).toLowerCase()+(botA&&botA.id!==topA.id?", mientras "+botA.tema.toLowerCase()+" requiere atención":"")+".":"Resultados Afirmaciones";
         addLeftCol(sA,insA);
         addLegend(sA,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desacuerdo"},{c:"D2D2D2",l:"En Desacuerdo"},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
         sA.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-0.88,w:0.13,h:0.13,fill:{type:"none"},line:{color:BRAND,width:1}});
@@ -1442,8 +1471,9 @@ function EvalPanel(p){
   var evalTerms=evalData&&evalData.terminologia?evalData.terminologia:TERM_DEFAULT;
   if(evalData){
     var allAfirm=AFIRMACIONES.concat(evalData.custom_afirmaciones||[]);
+    var allEstadiosFull=ESTADIOS.concat(evalData.custom_estadios||[]);
     var allComiteAfirm=COMITE_AFIRMACIONES_STD.concat(evalData.custom_comite_afirmaciones||[]);
-    if(evalData.sel.estadios&&evalData.sel.estadios.length) secs.push({key:"estadios",label:"Estadios de Excelencia",color:T.brand,questions:ESTADIOS.filter(function(q){return evalData.sel.estadios.includes(q.id)})});
+    if(evalData.sel.estadios&&evalData.sel.estadios.length) secs.push({key:"estadios",label:"Estadios de Excelencia",color:T.brand,questions:allEstadiosFull.filter(function(q){return evalData.sel.estadios.includes(q.id)})});
     if(evalData.sel.afirmaciones&&evalData.sel.afirmaciones.length) secs.push({key:"afirmaciones",label:"Afirmaciones",color:T.gold,questions:allAfirm.filter(function(q){return evalData.sel.afirmaciones.includes(q.id)})});
     if(evalData.comites){evalData.comites.forEach(function(com){var qs=com.afirmaciones.map(function(afId){return allComiteAfirm.find(function(a){return a.id===afId})}).filter(Boolean);if(qs.length&&(!comiteMemberships||comiteMemberships[com.id]!==false))secs.push({key:"comite_"+com.id,comiteId:com.id,label:com.nombre,color:T.teal,questions:qs,isComite:true})})}
     if(evalData.selComiteAbiertas&&evalData.selComiteAbiertas.length>0){var comAbQ=ABIERTAS_COMITE.filter(function(q){return evalData.selComiteAbiertas.includes(q.id)});if(comAbQ.length)secs.push({key:"comite_abiertas",label:"Preguntas sobre Comités",color:T.teal,questions:comAbQ,isComiteOpen:true})}
