@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.2d - fix allEstadios order */
+/* APP v4.3 - fix terminologia preview card y PPTX footer */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -831,7 +831,7 @@ function A4Preview(p){
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>{[{l:"Estadios",n:sel.estadios.length,c:T.brand},{l:"Afirmaciones",n:sel.afirmaciones.length,c:T.gold},{l:"Comités",n:p.comites.length+" ("+totComiteQ+")",c:T.teal},{l:"Abiertas",n:sel.abiertas.length,c:T.green}].map(function(x){return <Cd key={x.l} style={{textAlign:"center",padding:"24px 12px",borderTop:"3px solid "+x.c}}><div style={{fontFamily:T.font,fontSize:30,fontWeight:400,color:x.c}}>{x.n}</div><div style={{fontSize:12,color:T.gray500,marginTop:4}}>{x.l}</div></Cd>})}</div>
     {p.list5PA.length>0&&<Cd style={{marginBottom:12}}><h4 style={{fontSize:13,fontWeight:600,color:T.teal,margin:"0 0 8px"}}>5PA — Áreas de Formación ({p.list5PA.length})</h4><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{p.list5PA.map(function(t,i){return <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:6,background:T.offWhite,border:"1px solid "+T.gray200}}>{t}</span>})}</div></Cd>}
     {p.list6AC.length>0&&<Cd style={{marginBottom:12}}><h4 style={{fontSize:13,fontWeight:600,color:T.teal,margin:"0 0 8px"}}>6AC — Temas Estratégicos ({p.list6AC.length})</h4><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{p.list6AC.map(function(t,i){return <span key={i} style={{fontSize:12,padding:"4px 10px",borderRadius:6,background:T.offWhite,border:"1px solid "+T.gray200}}>{t}</span>})}</div></Cd>}
-    <Cd style={{padding:0,overflow:"hidden"}}><div style={{background:T.brand,padding:"32px 28px",textAlign:"center"}}><div style={{marginBottom:10,opacity:0.8}}><KearneyLogo size={120} color={T.white}/></div><h2 style={{fontFamily:T.font,fontSize:22,fontWeight:400,color:"#fff",margin:"0 0 6px"}}>Evaluación de Junta Directiva</h2><p style={{color:"rgba(255,255,255,0.7)",fontSize:14,margin:0}}>{co.nombre}{co.pais?" — "+co.pais:""}</p></div><div style={{padding:"24px 28px",textAlign:"center",color:T.gray500,fontSize:14}}>{totPreg+totComiteQ} preguntas listas para ser respondidas</div></Cd>
+    <Cd style={{padding:0,overflow:"hidden"}}><div style={{background:T.brand,padding:"32px 28px",textAlign:"center"}}><div style={{marginBottom:10,opacity:0.8}}><KearneyLogo size={120} color={T.white}/></div><h2 style={{fontFamily:T.font,fontSize:22,fontWeight:400,color:"#fff",margin:"0 0 6px"}}>{"Evaluación de "+(co.terminologia&&co.terminologia.organo?co.terminologia.organo:"Junta Directiva")}</h2><p style={{color:"rgba(255,255,255,0.7)",fontSize:14,margin:0}}>{co.nombre}{co.pais?" — "+co.pais:""}</p></div><div style={{padding:"24px 28px",textAlign:"center",color:T.gray500,fontSize:14}}>{totPreg+totComiteQ} preguntas listas para ser respondidas</div></Cd>
   </div>);
 }
 
@@ -986,7 +986,7 @@ function A7Informe(p){
 
       function addShell(slide,pn,empresa){
         slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.32,w:W,h:0.32,fill:{color:"F8F8F8"},line:{color:"E5E5EA",width:0.5}});
-        slide.addText("Fuente: Análisis Kearney — Evaluación de Junta Directiva",{x:0.6,y:H-0.65,w:14,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial"});
+        slide.addText("Fuente: Análisis Kearney — Evaluación de "+(pptxTerms.organo||"Junta Directiva"),{x:0.6,y:H-0.65,w:14,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial"});
         slide.addText("KEARNEY",{x:W/2-1,y:H-0.65,w:2,h:0.4,fontSize:6,bold:true,color:"505050",fontFace:"Arial",align:"center"});
         slide.addText(String(pn),{x:W-1,y:H-0.65,w:0.8,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial",align:"right"});
         slide.addText("Kearney – "+(empresa||""),{x:W-5,y:0.04,w:1.9,h:0.12,fontSize:5,color:"D0D0D0",fontFace:"Arial",align:"right"});
