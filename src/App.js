@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.2c - fix all procE customEstadios */
+/* APP v4.2d - fix allEstadios order */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -664,9 +664,9 @@ function A1(p){
     setETema("");setEE1("");setEE2("");setEE3("");setEE4("");setShowEModal(false);
   }
   var allAfirm=getAllAfirmaciones();
+  var allEstadios=getAllEstadios();
   var tot=sel.estadios.length+sel.afirmaciones.length;
   var tabs=[{k:"estadios",l:"Estadios de Excelencia",n:sel.estadios.length,t:allEstadios.length},{k:"afirmaciones",l:"Afirmaciones",n:sel.afirmaciones.length,t:allAfirm.length}];
-  var allEstadios=getAllEstadios();
   var qs=tab==="estadios"?allEstadios:allAfirm;
 
   return(<div>
