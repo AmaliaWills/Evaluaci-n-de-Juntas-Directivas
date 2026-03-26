@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.0 - PPTX, comite decision tree, rol dropdown, SVG icons, terminologia fix */
+/* APP v4.1 - PPTX inches fix */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -952,37 +952,37 @@ function A7Informe(p){
       var BRAND="7823DC";var DARK="1E1E1E";var GRAY="636366";var LGRAY="C7C7CC";var WHITE="FFFFFF";
       var COL_E=["D2D2D2","787878","D2D2D2","C8A5F0","7823DC"];
       /* slide dimensions: 33.87 x 19.05 cm (WIDE) */
-      var W=33.87;var H=19.05;
-      var LW=6.8;var RX=7.8;var RW=W-RX-0.6;
+      var W=13.33;var H=7.5;
+      var LW=2.8;var RX=3.2;var RW=W-RX-0.3;
 
       function addShell(slide,pn,empresa){
-        slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.8,w:W,h:0.8,fill:{color:"F8F8F8"},line:{color:"E5E5EA",width:0.5}});
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.32,w:W,h:0.32,fill:{color:"F8F8F8"},line:{color:"E5E5EA",width:0.5}});
         slide.addText("Fuente: Análisis Kearney — Evaluación de Junta Directiva",{x:0.6,y:H-0.65,w:14,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial"});
         slide.addText("KEARNEY",{x:W/2-1,y:H-0.65,w:2,h:0.4,fontSize:6,bold:true,color:"505050",fontFace:"Arial",align:"center"});
         slide.addText(String(pn),{x:W-1,y:H-0.65,w:0.8,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial",align:"right"});
-        slide.addText("Kearney – "+(empresa||""),{x:W-5,y:0.1,w:4.8,h:0.3,fontSize:5,color:"D0D0D0",fontFace:"Arial",align:"right"});
+        slide.addText("Kearney – "+(empresa||""),{x:W-5,y:0.04,w:1.9,h:0.12,fontSize:5,color:"D0D0D0",fontFace:"Arial",align:"right"});
       }
 
       function addSecHeader(slide,sec,title,sub){
-        slide.addText(sec,{x:RX,y:0.9,w:RW,h:0.4,fontSize:8,bold:true,color:BRAND,fontFace:"Arial"});
-        slide.addText(title,{x:RX,y:1.35,w:RW,h:0.35,fontSize:8,color:GRAY,fontFace:"Arial"});
-        if(sub)slide.addText(sub,{x:RX,y:1.65,w:RW,h:0.3,fontSize:7,color:GRAY,fontFace:"Arial"});
-        return sub?2.1:1.85;
+        slide.addText(sec,{x:RX,y:0.35,w:RW,h:0.22,fontSize:8,bold:true,color:BRAND,fontFace:"Arial"});
+        slide.addText(title,{x:RX,y:0.6,w:RW,h:0.2,fontSize:8,color:GRAY,fontFace:"Arial"});
+        if(sub)slide.addText(sub,{x:RX,y:0.82,w:RW,h:0.18,fontSize:7,color:GRAY,fontFace:"Arial"});
+        return sub?1.08:0.88;
       }
 
       function addLeftCol(slide,text){
-        slide.addText(text,{x:0.5,y:1.0,w:LW-0.3,h:8,fontSize:12,bold:true,color:BRAND,fontFace:"Arial",valign:"top",wrap:true});
+        slide.addText(text,{x:0.5,y:0.4,w:LW-0.1,h:3.5,fontSize:12,bold:true,color:BRAND,fontFace:"Arial",valign:"top",wrap:true});
       }
 
       function addLegend(slide,items,y){
         items.forEach(function(it,i){
-          var lx=0.5+i*3.2;
+          var lx=0.5+i*1.3;
           if(it.stripe){
             slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.55,h:0.35,fill:{color:"E0E0E0"},line:{color:"AAAAAA",width:0.5}});
           } else {
-            slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.55,h:0.35,fill:{color:it.c},line:{color:it.c,width:0}});
+            slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.22,h:0.14,fill:{color:it.c},line:{color:it.c,width:0}});
           }
-          slide.addText(it.l,{x:lx+0.65,y:y,w:2.4,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+          slide.addText(it.l,{x:lx+0.26,y:y,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
         });
       }
 
@@ -1002,7 +1002,7 @@ function A7Informe(p){
         if(avg>0){
           var cx=barX+barW+0.7;
           if(avg>=3.5){
-            slide.addShape(pptx.ShapeType.ellipse,{x:cx-0.28,y:rowY,w:0.55,h:barH,fill:{type:"none"},line:{color:BRAND,width:1.2}});
+            slide.addShape(pptx.ShapeType.ellipse,{x:cx-0.22,y:rowY,w:0.44,h:barH,fill:{type:"none"},line:{color:BRAND,width:1.2}});
           }
           slide.addText(avg.toFixed(1),{x:cx-0.28,y:rowY,w:0.55,h:barH,fontSize:7,bold:true,color:avg>=3.5?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"});
         }
@@ -1010,22 +1010,22 @@ function A7Informe(p){
 
       /* ══════ PORTADA ══════ */
       var s1=pptx.addSlide();
-      s1.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.8,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
-      s1.addShape(pptx.ShapeType.rect,{x:W/2+0.8,y:0,w:W/2-0.8,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
+      s1.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.3,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
+      s1.addShape(pptx.ShapeType.rect,{x:W/2+0.3,y:0,w:W/2-0.3,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
       /* geometric triangles */
-      s1.addShape(pptx.ShapeType.rtTriangle,{x:W/2+1.5,y:1,w:W/2-2.2,h:H-2,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0},rotate:0});
-      s1.addText("Análisis de resultados\ndel levantamiento de\nperspectivas",{x:0.8,y:2.8,w:LW,h:4,fontSize:24,bold:true,color:BRAND,fontFace:"Arial",wrap:true,lineSpacingMultiple:1.2});
-      s1.addText(co.nombre||"Empresa",{x:0.8,y:7.2,w:LW,h:0.7,fontSize:13,bold:true,color:DARK,fontFace:"Arial"});
-      s1.addText(co.anio||String(new Date().getFullYear()),{x:0.8,y:7.9,w:LW,h:0.5,fontSize:10,color:GRAY,fontFace:"Arial"});
+      s1.addShape(pptx.ShapeType.rtTriangle,{x:W/2+0.6,y:0.4,w:W/2-0.9,h:H-0.8,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0},rotate:0});
+      s1.addText("Análisis de resultados\ndel levantamiento de\nperspectivas",{x:0.8,y:1.1,w:LW,h:1.8,fontSize:24,bold:true,color:BRAND,fontFace:"Arial",wrap:true,lineSpacingMultiple:1.2});
+      s1.addText(co.nombre||"Empresa",{x:0.8,y:3.1,w:LW,h:0.35,fontSize:13,bold:true,color:DARK,fontFace:"Arial"});
+      s1.addText(co.anio||String(new Date().getFullYear()),{x:0.8,y:3.5,w:LW,h:0.25,fontSize:10,color:GRAY,fontFace:"Arial"});
       s1.addText("KEARNEY",{x:0.8,y:H-1.2,w:5,h:0.6,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
       var pn=2;
 
       /* ══════ TABLA DE CONTENIDO ══════ */
       var s2=pptx.addSlide();
-      s2.addShape(pptx.ShapeType.rect,{x:0,y:0,w:0.3,h:H,fill:{color:BRAND},line:{color:BRAND,width:0}});
-      s2.addText("Análisis de resultados del levantamiento de perspectivas",{x:0.5,y:0.7,w:W-1,h:0.7,fontSize:13,bold:true,color:BRAND,fontFace:"Arial"});
-      s2.addText(co.nombre||"",{x:0.5,y:1.4,w:W-1,h:0.4,fontSize:9,color:GRAY,fontFace:"Arial"});
-      s2.addShape(pptx.ShapeType.line,{x:0,y:1.9,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
+      s2.addShape(pptx.ShapeType.rect,{x:0,y:0,w:0.12,h:H,fill:{color:BRAND},line:{color:BRAND,width:0}});
+      s2.addText("Análisis de resultados del levantamiento de perspectivas",{x:0.5,y:0.28,w:W-1,h:0.35,fontSize:13,bold:true,color:BRAND,fontFace:"Arial"});
+      s2.addText(co.nombre||"",{x:0.5,y:0.65,w:W-1,h:0.2,fontSize:9,color:GRAY,fontFace:"Arial"});
+      s2.addShape(pptx.ShapeType.line,{x:0,y:0.88,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
       var eD2=procE(p.resps,p.sel);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
       var tocSecs=[];
       if(eD2.qs.length)tocSecs.push({t:"Estadios de Excelencia",s:eD2.qs.length+" dimensiones",c:BRAND});
@@ -1036,25 +1036,25 @@ function A7Informe(p){
       if(preguntas.length)tocSecs.push({t:"Preguntas críticas",s:"3 por participante",c:BRAND});
       if(rank6.length)tocSecs.push({t:"Plan de acción estratégico",s:"Próximos 3 años",c:BRAND});
       if(rank5.length)tocSecs.push({t:"Áreas de formación",s:"Prioridades directores",c:"C6973B"});
-      var nCols=2;var colWT=(W-1.5)/nCols;var yT=2.1;var rowHT=1.5;
+      var nCols=2;var colWT=(W-0.6)/nCols;var yT=1.0;var rowHT=0.7;
       tocSecs.forEach(function(s,i){
         var col=i%nCols;var row=Math.floor(i/nCols);
-        var cx=0.5+col*(colWT+0.5);var cy=yT+row*(rowHT+0.3);
-        s2.addShape(pptx.ShapeType.rect,{x:cx,y:cy,w:0.2,h:rowHT,fill:{color:s.c},line:{color:s.c,width:0}});
+        var cx=0.3+col*(colWT+0.2);var cy=yT+row*(rowHT+0.12);
+        s2.addShape(pptx.ShapeType.rect,{x:cx,y:cy,w:0.08,h:rowHT,fill:{color:s.c},line:{color:s.c,width:0}});
         var r2=parseInt(s.c.slice(0,2),16),g2=parseInt(s.c.slice(2,4),16),b2=parseInt(s.c.slice(4,6),16);
         var mix=function(v){return Math.round(v+(255-v)*0.9).toString(16).padStart(2,"0")};
         var bgc=mix(r2)+mix(g2)+mix(b2);
-        s2.addShape(pptx.ShapeType.rect,{x:cx+0.2,y:cy,w:colWT-0.2,h:rowHT,fill:{color:bgc},line:{color:bgc,width:0}});
-        s2.addText(s.t,{x:cx+0.35,y:cy+0.2,w:colWT-0.5,h:0.5,fontSize:8,bold:true,color:s.c,fontFace:"Arial"});
-        s2.addText(s.s,{x:cx+0.35,y:cy+0.8,w:colWT-0.5,h:0.4,fontSize:6.5,color:GRAY,fontFace:"Arial"});
+        s2.addShape(pptx.ShapeType.rect,{x:cx+0.08,y:cy,w:colWT-0.08,h:rowHT,fill:{color:bgc},line:{color:bgc,width:0}});
+        s2.addText(s.t,{x:cx+0.12,y:cy+0.08,w:colWT-0.2,h:0.25,fontSize:8,bold:true,color:s.c,fontFace:"Arial"});
+        s2.addText(s.s,{x:cx+0.12,y:cy+0.38,w:colWT-0.2,h:0.2,fontSize:6.5,color:GRAY,fontFace:"Arial"});
       });
-      var statY=H-2.5;
-      s2.addShape(pptx.ShapeType.rect,{x:0,y:statY,w:W,h:2,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
+      var statY=H-1.0;
+      s2.addShape(pptx.ShapeType.rect,{x:0,y:statY,w:W,h:0.8,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
       s2.addShape(pptx.ShapeType.line,{x:0,y:statY,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
       var stats=[{l:"Participantes",v:String(N)},{l:"Promedio Estadios",v:eD2.avg?eD2.avg.toFixed(1):"—"},{l:"Promedio Afirmaciones",v:aD2.avg?aD2.avg.toFixed(1):"—"},{l:"Comités evaluados",v:String(cD2.filter(function(c){return c.qs&&c.qs.length}).length)}];
       stats.forEach(function(s,i){var sw=W/stats.length;
-        s2.addText(s.v,{x:sw*i,y:statY+0.3,w:sw,h:0.8,fontSize:20,bold:true,color:BRAND,fontFace:"Arial",align:"center"});
-        s2.addText(s.l,{x:sw*i,y:statY+1.1,w:sw,h:0.4,fontSize:6.5,color:GRAY,fontFace:"Arial",align:"center"});
+        s2.addText(s.v,{x:sw*i,y:statY+0.1,w:sw,h:0.4,fontSize:20,bold:true,color:BRAND,fontFace:"Arial",align:"center"});
+        s2.addText(s.l,{x:sw*i,y:statY+0.52,w:sw,h:0.2,fontSize:6.5,color:GRAY,fontFace:"Arial",align:"center"});
       });
       addShell(s2,pn,co.nombre);pn++;
 
@@ -1069,7 +1069,7 @@ function A7Informe(p){
         addLegend(sE,[{stripe:true,l:"Sin información"},{c:"787878",l:"Estadio 1"},{c:"D2D2D2",l:"Estadio 2"},{c:"C8A5F0",l:"Estadio 3"},{c:"7823DC",l:"Estadio 4"}],H-1.6);
         var yE=addSecHeader(sE,"Estadios de Excelencia","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","(N= "+N+")");
         sE.addText("Percepción promedio",{x:RX+RW,y:yE-0.3,w:2.5,h:0.3,fontSize:6,color:GRAY,fontFace:"Arial"});
-        var bH=0.52;var bGap=0.26;var lW2=5.6;var bX=RX+lW2+0.15;var bW=RW-lW2-1.8;
+        var bH=0.22;var bGap=0.1;var lW2=2.2;var bX=RX+lW2+0.06;var bW=RW-lW2-0.8;
         sortedE.forEach(function(q,qi){
           if(yE+qi*(bH+bGap)>H-1.2)return;
           addHBar(sE,q.tema,q.dist,q.avg,yE+qi*(bH+bGap),bH,lW2,bX,bW,N,COL_E);
@@ -1077,8 +1077,8 @@ function A7Informe(p){
         /* zone labels */
         var z4=sortedE.filter(function(q){return q.avg>=3.5});
         var z3=sortedE.filter(function(q){return q.avg>=2.5&&q.avg<3.5});
-        if(z4.length)sE.addText("Estadio 4:\nAlto Desempeño",{x:bX+bW+1.4,y:yE,w:2,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
-        if(z3.length)sE.addText("Estadio 3:\nEstándares Internacionales",{x:bX+bW+1.4,y:yE+z4.length*(bH+bGap),w:2,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z4.length)sE.addText("Estadio 4:\nAlto Desempeño",{x:bX+bW+0.15,y:yE,w:0.9,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        if(z3.length)sE.addText("Estadio 3:\nEstándares Internacionales",{x:bX+bW+0.15,y:yE+z4.length*(bH+bGap),w:0.9,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
         addShell(sE,pn,co.nombre);pn++;
       }
 
@@ -1091,20 +1091,20 @@ function A7Informe(p){
         var insA=topA?"Las afirmaciones muestran mayor acuerdo en "+topA.tema.toLowerCase()+(botA&&botA.id!==topA.id?", mientras "+botA.tema.toLowerCase()+" requiere atención":"")+".":"Resultados Afirmaciones";
         addLeftCol(sA,insA);
         addLegend(sA,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desacuerdo"},{c:"D2D2D2",l:"En Desacuerdo"},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
-        sA.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-2.2,w:0.32,h:0.32,fill:{type:"none"},line:{color:BRAND,width:1}});
-        sA.addText("Aspecto a profundizar",{x:0.9,y:H-2.2,w:3,h:0.32,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        sA.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-0.88,w:0.13,h:0.13,fill:{type:"none"},line:{color:BRAND,width:1}});
+        sA.addText("Aspecto a profundizar",{x:0.68,y:H-0.88,w:1.2,h:0.13,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
         var yA=addSecHeader(sA,"Resultados Afirmaciones","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
-        var aBarH=0.52;var aGap=0.28;var aLW=6.5;var aBX=RX+aLW+0.15;var aBW=RW-aLW-1.8;
-        sA.addText("Afirmaciones",{x:RX,y:yA-0.25,w:aLW,h:0.28,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
-        sA.addText("Respuestas (N="+N+")",{x:aBX,y:yA-0.25,w:aBW,h:0.28,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
-        sA.addText("Percepción promedio",{x:aBX+aBW+0.1,y:yA-0.25,w:2,h:0.28,fontSize:6,color:GRAY,fontFace:"Arial"});
+        var aBarH=0.22;var aGap=0.12;var aLW=2.5;var aBX=RX+aLW+0.06;var aBW=RW-aLW-0.8;
+        sA.addText("Afirmaciones",{x:RX,y:yA-0.12,w:aLW,h:0.14,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
+        sA.addText("Respuestas (N="+N+")",{x:aBX,y:yA-0.12,w:aBW,h:0.14,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
+        sA.addText("Percepción promedio",{x:aBX+aBW+0.08,y:yA-0.12,w:0.9,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial"});
         sortedA.forEach(function(q,qi){
           if(yA+qi*(aBarH+aGap)>H-1.5)return;
           var rowY=yA+qi*(aBarH+aGap);
-          sA.addShape(pptx.ShapeType.rect,{x:RX,y:rowY,w:0.45,h:aBarH,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
-          sA.addText(String(qi+1),{x:RX,y:rowY,w:0.45,h:aBarH,fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle"});
+          sA.addShape(pptx.ShapeType.rect,{x:RX,y:rowY,w:0.18,h:aBarH,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
+          sA.addText(String(qi+1),{x:RX,y:rowY,w:0.18,h:aBarH,fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle"});
           var txt=q.tema.length>55?q.tema.substring(0,53)+"...":q.tema;
-          sA.addText(txt,{x:RX+0.5,y:rowY,w:aLW-0.5,h:aBarH,fontSize:6.5,color:DARK,fontFace:"Arial",valign:"middle"});
+          sA.addText(txt,{x:RX+0.2,y:rowY,w:aLW-0.2,h:aBarH,fontSize:6.5,color:DARK,fontFace:"Arial",valign:"middle"});
           var xPos=aBX;
           q.dist.forEach(function(count,idx){
             if(count===0)return;
@@ -1113,11 +1113,11 @@ function A7Informe(p){
             if(segW>0.4)sA.addText(String(count),{x:xPos,y:rowY,w:segW,h:aBarH,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});
             xPos+=segW;
           });
-          if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sA.addShape(pptx.ShapeType.ellipse,{x:aBX+aBW+0.42,y:rowY,w:0.5,h:aBarH,fill:{type:"none"},line:{color:BRAND,width:1.2}})}sA.addText(q.avg.toFixed(1),{x:aBX+aBW+0.42,y:rowY,w:0.5,h:aBarH,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
+          if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sA.addShape(pptx.ShapeType.ellipse,{x:aBX+aBW+0.15,y:rowY,w:0.4,h:aBarH,fill:{type:"none"},line:{color:BRAND,width:1.2}})}sA.addText(q.avg.toFixed(1),{x:aBX+aBW+0.15,y:rowY,w:0.4,h:aBarH,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
         });
         /* scale labels */
-        var scY=H-1.3;var scLabs=["1\nTot. Desac.","2\nDesac.","0\nSin Info.","3\nAcuerdo","4\nTot. Acuerdo"];var scColors=[COL_E[1],COL_E[2],COL_E[0],COL_E[3],COL_E[4]];
-        scLabs.forEach(function(sl,si){var sx=aBX+si*(aBW/5);sA.addShape(pptx.ShapeType.rect,{x:sx,y:scY,w:0.7,h:0.35,fill:{color:scColors[si]},line:{color:scColors[si],width:0}});sA.addText(sl.split("\n")[0],{x:sx,y:scY,w:0.7,h:0.35,fontSize:6,bold:true,color:"FFFFFF",fontFace:"Arial",align:"center",valign:"middle"});sA.addText(sl.split("\n")[1]||"",{x:sx,y:scY+0.35,w:0.7,h:0.3,fontSize:5.5,color:GRAY,fontFace:"Arial",align:"center"})});
+        var scY=H-0.55;var scLabs=["1\nTot. Desac.","2\nDesac.","0\nSin Info.","3\nAcuerdo","4\nTot. Acuerdo"];var scColors=[COL_E[1],COL_E[2],COL_E[0],COL_E[3],COL_E[4]];
+        scLabs.forEach(function(sl,si){var sx=aBX+si*(aBW/5);sA.addShape(pptx.ShapeType.rect,{x:sx,y:scY,w:0.28,h:0.14,fill:{color:scColors[si]},line:{color:scColors[si],width:0}});sA.addText(sl.split("\n")[0],{x:sx,y:scY,w:0.28,h:0.14,fontSize:6,bold:true,color:"FFFFFF",fontFace:"Arial",align:"center",valign:"middle"});sA.addText(sl.split("\n")[1]||"",{x:sx,y:scY+0.14,w:0.28,h:0.12,fontSize:5.5,color:GRAY,fontFace:"Arial",align:"center"})});
         addShell(sA,pn,co.nombre);pn++;
       }
 
@@ -1129,27 +1129,27 @@ function A7Informe(p){
         var topCom=activeCom.slice().sort(function(a,b){return b.avg-a.avg})[0];
         addLeftCol(sC,topCom?"Los resultados muestran una valoración favorable de los Comités, con mayor desempeño en el Comité de "+topCom.nombre+".":"Resultados Evaluación de Comités de Apoyo");
         addLegend(sC,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desac."},{c:"D2D2D2",l:"En Desac."},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
-        sC.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-2.2,w:0.32,h:0.32,fill:{type:"none"},line:{color:BRAND,width:1}});
-        sC.addText("Aspecto a profundizar",{x:0.9,y:H-2.2,w:3,h:0.32,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        sC.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-0.88,w:0.13,h:0.13,fill:{type:"none"},line:{color:BRAND,width:1}});
+        sC.addText("Aspecto a profundizar",{x:0.68,y:H-0.88,w:1.2,h:0.13,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
         var yC=addSecHeader(sC,"Resultados Evaluación de Comités de Apoyo","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
-        var nCC=activeCom.length;var cCW=Math.min(3.8,(RW-0.3)/nCC);
+        var nCC=activeCom.length;var cCW=Math.min(1.5,(RW-0.12)/nCC);
         activeCom.forEach(function(com,ci){
           var cx=RX+ci*(cCW+0.3);var isTop=com===topCom;
-          if(isTop){sC.addShape(pptx.ShapeType.rect,{x:cx-0.08,y:yC-0.3,w:cCW+0.16,h:H-yC-0.6,fill:{type:"none"},line:{color:BRAND,width:1.2,dashType:"dash"}})}
-          sC.addText(com.nombre,{x:cx,y:yC,w:cCW,h:0.4,fontSize:7,bold:isTop,color:isTop?BRAND:GRAY,fontFace:"Arial",align:"center",wrap:true});
-          sC.addText("(N="+N+")",{x:cx,y:yC+0.42,w:cCW,h:0.28,fontSize:6,color:GRAY,fontFace:"Arial",align:"center"});
+          if(isTop){sC.addShape(pptx.ShapeType.rect,{x:cx-0.03,y:yC-0.12,w:cCW+0.06,h:H-yC-0.5,fill:{type:"none"},line:{color:BRAND,width:1.2,dashType:"dash"}})}
+          sC.addText(com.nombre,{x:cx,y:yC,w:cCW,h:0.22,fontSize:7,bold:isTop,color:isTop?BRAND:GRAY,fontFace:"Arial",align:"center",wrap:true});
+          sC.addText("(N="+N+")",{x:cx,y:yC+0.24,w:cCW,h:0.15,fontSize:6,color:GRAY,fontFace:"Arial",align:"center"});
         });
         var allTemas=[];
         activeCom.forEach(function(c){c.qs.forEach(function(q){if(!allTemas.includes(q.tema))allTemas.push(q.tema)})});
-        var rowHC=0.52;var gapC=0.32;var startYC=yC+0.85;
+        var rowHC=0.22;var gapC=0.14;var startYC=yC+0.48;
         allTemas.forEach(function(tema,ti){
           var rowY=startYC+ti*(rowHC+gapC);if(rowY>H-1.2)return;
-          sC.addText(tema,{x:RX-0.1,y:rowY,w:LW,h:rowHC,fontSize:7,bold:true,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
+          sC.addText(tema,{x:RX-0.05,y:rowY,w:LW,h:rowHC,fontSize:7,bold:true,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
           activeCom.forEach(function(com,ci){
             var cx=RX+ci*(cCW+0.3);var q=com.qs.find(function(x){return x.tema===tema});if(!q)return;
             var bW2=cCW-0.3;var xPos=cx;
             q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*bW2;sC.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:rowHC,fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}});if(segW>0.35)sC.addText(String(count),{x:xPos,y:rowY,w:segW,h:rowHC,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});xPos+=segW});
-            if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sC.addShape(pptx.ShapeType.ellipse,{x:cx+bW2+0.08,y:rowY,w:0.4,h:rowHC,fill:{type:"none"},line:{color:BRAND,width:1}})}sC.addText(q.avg.toFixed(1),{x:cx+bW2+0.08,y:rowY,w:0.4,h:rowHC,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
+            if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sC.addShape(pptx.ShapeType.ellipse,{x:cx+bW2+0.04,y:rowY,w:0.32,h:rowHC,fill:{type:"none"},line:{color:BRAND,width:1}})}sC.addText(q.avg.toFixed(1),{x:cx+bW2+0.04,y:rowY,w:0.32,h:rowHC,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
           });
         });
         addShell(sC,pn,co.nombre);pn++;
@@ -1160,12 +1160,12 @@ function A7Informe(p){
         var s6=pptx.addSlide();
         var top6=rank6[0];
         addLeftCol(s6,top6?"La priorización de temas refleja consistencia en: "+top6.tema.substring(0,100)+".":"Plan de acción estratégico");
-        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-2.2,w:0.55,h:0.35,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
-        s6.addText("Directores",{x:1.15,y:H-2.2,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-1.75,w:0.55,h:0.35,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
-        s6.addText("Alta Gerencia",{x:1.15,y:H-1.75,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.88,w:0.22,h:0.14,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
+        s6.addText("Directores",{x:0.75,y:H-0.88,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.7,w:0.22,h:0.14,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
+        s6.addText("Alta Gerencia",{x:0.75,y:H-0.7,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
         var y6=addSecHeader(s6,"Plan de acción para priorizar en los próximos 3 años","Resultados obtenidos – cada participante escogió 3 temas estratégicos","(N= "+N+")");
-        var mx6=rank6[0]?rank6[0].total:1;var bH6=0.45;var g6=0.18;var lW6=8;var bX6=RX+lW6+0.15;var bW6=RW-lW6-2.5;
+        var mx6=rank6[0]?rank6[0].total:1;var bH6=0.2;var g6=0.08;var lW6=3.5;var bX6=RX+lW6+0.06;var bW6=RW-lW6-1.0;
         var uPx6=(umbral/Math.max(mx6,1))*bW6;
         rank6.forEach(function(item,i){
           if(y6+i*(bH6+g6)>H-1.3)return;
@@ -1177,7 +1177,7 @@ function A7Informe(p){
           s6.addText(String(item.total),{x:bX6+bLen+0.1,y:rowY,w:0.5,h:bH6,fontSize:7,bold:true,color:DARK,fontFace:"Arial",valign:"middle"});
         });
         s6.addShape(pptx.ShapeType.line,{x:bX6+uPx6,y:y6-0.3,w:0,h:rank6.length*(bH6+g6)+0.3,line:{color:"C8201E",width:1,dashType:"sysDash"}});
-        s6.addText("Umbral: "+umbral+" de "+N,{x:bX6+uPx6+0.1,y:y6-0.3,w:2.5,h:0.28,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
+        s6.addText("Umbral: "+umbral+" de "+N,{x:bX6+uPx6+0.04,y:y6-0.15,w:1.0,h:0.14,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
         addShell(s6,pn,co.nombre);pn++;
       }
 
@@ -1186,12 +1186,12 @@ function A7Informe(p){
         var s5=pptx.addSlide();
         var top5=rank5[0];
         addLeftCol(s5,top5?"Las áreas prioritarias de formación se concentran en: "+top5.tema.substring(0,100)+".":"Áreas de formación para Directores");
-        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-2.2,w:0.55,h:0.35,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
-        s5.addText("Directores",{x:1.15,y:H-2.2,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-1.75,w:0.55,h:0.35,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
-        s5.addText("Alta Gerencia",{x:1.15,y:H-1.75,w:2.5,h:0.35,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.88,w:0.22,h:0.14,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
+        s5.addText("Directores",{x:0.75,y:H-0.88,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.7,w:0.22,h:0.14,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
+        s5.addText("Alta Gerencia",{x:0.75,y:H-0.7,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
         var y5=addSecHeader(s5,"Áreas de formación para Directores","Resultados obtenidos – cada participante escogió 3 áreas de formación","(N= "+N+")");
-        var mx5=rank5[0]?rank5[0].total:1;var bH5=0.45;var g5=0.18;var lW5=8;var bX5=RX+lW5+0.15;var bW5=RW-lW5-2.5;
+        var mx5=rank5[0]?rank5[0].total:1;var bH5=0.2;var g5=0.08;var lW5=3.5;var bX5=RX+lW5+0.06;var bW5=RW-lW5-1.0;
         var uPx5=(umbral/Math.max(mx5,1))*bW5;
         rank5.forEach(function(item,i){
           if(y5+i*(bH5+g5)>H-1.3)return;
@@ -1203,7 +1203,7 @@ function A7Informe(p){
           s5.addText(String(item.total),{x:bX5+bLen5+0.1,y:rowY,w:0.5,h:bH5,fontSize:7,bold:true,color:DARK,fontFace:"Arial",valign:"middle"});
         });
         s5.addShape(pptx.ShapeType.line,{x:bX5+uPx5,y:y5-0.3,w:0,h:rank5.length*(bH5+g5)+0.3,line:{color:"C8201E",width:1,dashType:"sysDash"}});
-        s5.addText("Umbral: "+umbral+" de "+N,{x:bX5+uPx5+0.1,y:y5-0.3,w:2.5,h:0.28,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
+        s5.addText("Umbral: "+umbral+" de "+N,{x:bX5+uPx5+0.04,y:y5-0.15,w:1.0,h:0.14,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
         addShell(s5,pn,co.nombre);pn++;
       }
 
@@ -1215,14 +1215,14 @@ function A7Informe(p){
         var s3=pptx.addSlide();
         addLeftCol(s3,"Los encuestados priorizan perfiles que combinan conocimiento de industria, capacidades financieras y trayectoria estratégica.");
         var y3=addSecHeader(s3,"Perfil, experiencia y/o capacidades de un nuevo miembro","Resultados obtenidos – Características identificadas","(N= "+N+")");
-        var cols3=2;var colW3=(RW-0.4)/cols3;
+        var cols3=2;var colW3=(RW-0.16)/cols3;
         raw3P.forEach(function(item,i){
-          var col=i%cols3;var row=Math.floor(i/cols3);var rowY=y3+row*2.0;if(rowY>H-1.5)return;
+          var col=i%cols3;var row=Math.floor(i/cols3);var rowY=y3+row*0.9;if(rowY>H-0.6)return;
           var cx=RX+col*(colW3+0.4);
-          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:colW3,h:1.7,fill:{color:"F8F7FC"},line:{color:"E0E0E0",width:0.5}});
-          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:0.12,h:1.7,fill:{color:BRAND},line:{color:BRAND,width:0}});
-          s3.addText(item.texto,{x:cx+0.2,y:rowY+0.2,w:colW3-0.35,h:1.1,fontSize:7.5,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
-          s3.addText("— "+item.autor,{x:cx+0.2,y:rowY+1.35,w:colW3-0.35,h:0.28,fontSize:6.5,color:GRAY,fontFace:"Arial"});
+          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:colW3,h:0.75,fill:{color:"F8F7FC"},line:{color:"E0E0E0",width:0.5}});
+          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:0.05,h:0.75,fill:{color:BRAND},line:{color:BRAND,width:0}});
+          s3.addText(item.texto,{x:cx+0.08,y:rowY+0.08,w:colW3-0.14,h:0.5,fontSize:7.5,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
+          s3.addText("— "+item.autor,{x:cx+0.08,y:rowY+0.6,w:colW3-0.14,h:0.12,fontSize:6.5,color:GRAY,fontFace:"Arial"});
         });
         addShell(s3,pn,co.nombre);pn++;
       })();
@@ -1241,19 +1241,19 @@ function A7Informe(p){
           var sP=pptx.addSlide();
           var partL="("+(pgi+1)+"/"+pageGroups.length+")";
           var yP=addSecHeader(sP,"Preguntas críticas o clave para abordar","Resultados obtenidos – cada participante planteó 3 preguntas  (N= "+N+")  "+partL,"");
-          var colWP=(RW-0.3*(pg.length-1))/pg.length;
+          var colWP=(RW-0.12*(pg.length-1))/pg.length;
           pg.forEach(function(grp,gi){
             var colX=RX+gi*(colWP+0.3);var yPI=yP;
             if(grp.nombre){
-              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP,h:0.55,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
-              sP.addText(grp.nombre,{x:colX+0.15,y:yPI,w:colWP-0.2,h:0.55,fontSize:7.5,bold:true,color:BRAND,fontFace:"Arial",valign:"middle"});
-              yPI+=0.65;
+              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP,h:0.25,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
+              sP.addText(grp.nombre,{x:colX+0.06,y:yPI,w:colWP-0.08,h:0.25,fontSize:7.5,bold:true,color:BRAND,fontFace:"Arial",valign:"middle"});
+              yPI+=0.3;
             }
             grp.preguntas.forEach(function(q,qi){
-              if(yPI>H-1.3)return;
-              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP-0.1,h:1.7,fill:{color:"FAFAFA"},line:{color:"DDD8F0",width:0.5}});
-              sP.addText((qi+1)+". "+q.texto,{x:colX+0.15,y:yPI+0.1,w:colWP-0.35,h:1.5,fontSize:7,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
-              yPI+=1.85;
+              if(yPI>H-0.5)return;
+              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP-0.1,h:0.75,fill:{color:"FAFAFA"},line:{color:"DDD8F0",width:0.5}});
+              sP.addText((qi+1)+". "+q.texto,{x:colX+0.06,y:yPI+0.04,w:colWP-0.14,h:0.67,fontSize:7,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
+              yPI+=0.82;
             });
           });
           addShell(sP,pn,co.nombre);pn++;
@@ -1262,20 +1262,20 @@ function A7Informe(p){
 
       /* ══════ CIERRE ══════ */
       var sZ=pptx.addSlide();
-      sZ.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.8,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
-      sZ.addShape(pptx.ShapeType.rect,{x:W/2+0.8,y:0,w:W/2-0.8,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
-      sZ.addShape(pptx.ShapeType.rtTriangle,{x:W/2+1.5,y:1,w:W/2-2.2,h:H-2,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0}});
-      sZ.addText("Thank you",{x:0.8,y:1.2,w:LW,h:1.0,fontSize:20,bold:true,color:BRAND,fontFace:"Arial"});
+      sZ.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.3,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
+      sZ.addShape(pptx.ShapeType.rect,{x:W/2+0.3,y:0,w:W/2-0.3,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
+      sZ.addShape(pptx.ShapeType.rtTriangle,{x:W/2+0.6,y:0.4,w:W/2-0.9,h:H-0.8,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0}});
+      sZ.addText("Thank you",{x:0.8,y:0.5,w:LW,h:0.5,fontSize:20,bold:true,color:BRAND,fontFace:"Arial"});
       var equipo=co.equipo?co.equipo.split(",").map(function(s){return s.trim()}).filter(Boolean):[];
-      var yTeam=2.5;
+      var yTeam=1.2;
       equipo.forEach(function(nombre,i){
-        var col=i%2;var row=Math.floor(i/2);var tx=0.8+col*8.5;var ty=yTeam+row*1.8;
-        sZ.addText(nombre,{x:tx,y:ty,w:8,h:0.5,fontSize:9,bold:true,color:DARK,fontFace:"Arial"});
-        sZ.addText("Equipo Kearney",{x:tx,y:ty+0.5,w:8,h:0.35,fontSize:8,color:GRAY,fontFace:"Arial"});
+        var col=i%2;var row=Math.floor(i/2);var tx=0.8+col*3.5;var ty=yTeam+row*0.75;
+        sZ.addText(nombre,{x:tx,y:ty,w:3,h:0.25,fontSize:9,bold:true,color:DARK,fontFace:"Arial"});
+        sZ.addText("Equipo Kearney",{x:tx,y:ty+0.26,w:3,h:0.18,fontSize:8,color:GRAY,fontFace:"Arial"});
       });
-      sZ.addText("Kearney is a leading global management consulting firm. For nearly 100 years, we have been a trusted advisor to C-suites, government bodies, and nonprofits.",{x:0.8,y:H-3,w:LW,h:1.5,fontSize:7.5,color:GRAY,fontFace:"Arial",wrap:true});
-      sZ.addText("www.kearney.com",{x:0.8,y:H-1.4,w:5,h:0.4,fontSize:8,bold:true,color:DARK,fontFace:"Arial"});
-      sZ.addText("KEARNEY",{x:0.8,y:H-0.9,w:5,h:0.55,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
+      sZ.addText("Kearney is a leading global management consulting firm. For nearly 100 years, we have been a trusted advisor to C-suites, government bodies, and nonprofits.",{x:0.8,y:H-1.2,w:LW,h:0.7,fontSize:7.5,color:GRAY,fontFace:"Arial",wrap:true});
+      sZ.addText("www.kearney.com",{x:0.8,y:H-0.45,w:2,h:0.2,fontSize:8,bold:true,color:DARK,fontFace:"Arial"});
+      sZ.addText("KEARNEY",{x:0.8,y:H-0.28,w:2,h:0.25,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
 
       var filename="Informe_JD_"+(co.nombre||"Evaluacion").replace(/[^a-zA-Z0-9]/g,"_")+"_"+(co.anio||"")+".pptx";
       pptx.writeFile({fileName:filename}).then(function(){setGenerating(false)}).catch(function(err){alert("Error: "+err.message);setGenerating(false)});
