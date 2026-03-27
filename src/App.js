@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* APP v4.3 - fix terminologia preview card y PPTX footer */
+/* APP v4.4 - PPTX redesign matching Kearney reference */
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import * as XLSX from "xlsx";
@@ -976,64 +976,195 @@ function A7Informe(p){
       var pptx=new window.PptxGenJS();
       pptx.layout="LAYOUT_WIDE";
       var co=p.co||{};var N=p.resps.length;
-      var pptxTerms=(function(){var t=p.evalData&&p.evalData.terminologia&&p.evalData.terminologia.organo?p.evalData.terminologia:(co.terminologia&&co.terminologia.organo?co.terminologia:TERM_DEFAULT);if(t&&typeof t==="string"){try{t=JSON.parse(t)}catch(e){t=TERM_DEFAULT}}return(t&&t.organo)?t:TERM_DEFAULT;})();
+      var pptxTerms=(function(){
+        var t=p.evalData&&p.evalData.terminologia&&p.evalData.terminologia.organo?p.evalData.terminologia:(co.terminologia&&co.terminologia.organo?co.terminologia:TERM_DEFAULT);
+        if(t&&typeof t==="string"){try{t=JSON.parse(t)}catch(e){t=TERM_DEFAULT}}
+        return(t&&t.organo)?t:TERM_DEFAULT;
+      })();
       function pt(text){return applyTerms(text,pptxTerms)}
-      var BRAND="7823DC";var DARK="1E1E1E";var GRAY="636366";var LGRAY="C7C7CC";var WHITE="FFFFFF";
-      var COL_E=["D2D2D2","787878","D2D2D2","C8A5F0","7823DC"];
-      /* slide dimensions: 33.87 x 19.05 cm (WIDE) */
+
+      /* ── Kearney reference colors ── */
+      var BRAND="7823DC";
+      var DARK="1E1E1E";
+      var GRAY="636366";
+      var LGRAY="A5A5A5";
+      var WHITE="FFFFFF";
+      var LTGRAY="D2D2D2";
+      /* Estadio/Afirmación bar colors: [0]=sin info, [1]=E1/TotDesac, [2]=E2/Desac, [3]=E3/Acuerdo, [4]=E4/TotAcuerdo */
+      var COL_E=["D2D2D2","787878","A5A5A5","C8A5F0","7823DC"];
+
+      /* ── Slide dimensions (LAYOUT_WIDE) ── */
       var W=13.33;var H=7.5;
-      var LW=2.8;var RX=3.2;var RW=W-RX-0.3;
 
+      /* ── Layout zones from reference ── */
+      var LEFT_BG_W=3.33;
+      var LX=0.42;var LY=0.42;var LW=2.50;var LH=5.0;
+      var RX=3.75;var RW=W-RX-0.42;
+      var FOOTER_Y=6.67;
+      var FOOTER_SRC_X=3.75;
+      var PAGE_NUM_X=0.41;var PAGE_NUM_Y=6.81;
+      var KEARNEY_LABEL_X=12.26;var KEARNEY_LABEL_Y=7.19;
+
+      /* ── Shell: left background + footer + page number ── */
       function addShell(slide,pn,empresa){
-        slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.32,w:W,h:0.32,fill:{color:"F8F8F8"},line:{color:"E5E5EA",width:0.5}});
-        slide.addText("Fuente: Análisis Kearney — Evaluación de "+(pptxTerms.organo||"Junta Directiva"),{x:0.6,y:H-0.65,w:14,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial"});
-        slide.addText("KEARNEY",{x:W/2-1,y:H-0.65,w:2,h:0.4,fontSize:6,bold:true,color:"505050",fontFace:"Arial",align:"center"});
-        slide.addText(String(pn),{x:W-1,y:H-0.65,w:0.8,h:0.4,fontSize:6,color:LGRAY,fontFace:"Arial",align:"right"});
-        slide.addText("Kearney – "+(empresa||""),{x:W-5,y:0.04,w:1.9,h:0.12,fontSize:5,color:"D0D0D0",fontFace:"Arial",align:"right"});
+        /* Left column white background */
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:LEFT_BG_W,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
+        /* Footer source line */
+        slide.addText(
+          "Fuente: Análisis Kearney, Herramienta de Recolección de Perspectivas "+(empresa||""),
+          {x:FOOTER_SRC_X,y:FOOTER_Y,w:RW,h:0.42,fontSize:7,color:LGRAY,fontFace:"Arial",valign:"top"}
+        );
+        /* Page number bottom-left */
+        slide.addText(String(pn),
+          {x:PAGE_NUM_X,y:PAGE_NUM_Y,w:0.41,h:0.30,fontSize:10,bold:true,color:DARK,fontFace:"Arial",valign:"middle"}
+        );
+        /* KEARNEY text bottom-left next to page number */
+        slide.addText("KEARNEY",
+          {x:PAGE_NUM_X+0.55,y:PAGE_NUM_Y,w:1.2,h:0.30,fontSize:10,bold:true,color:DARK,fontFace:"Arial",valign:"middle"}
+        );
+        /* Kearney – Empresa top-right corner */
+        slide.addText("Kearney – "+(empresa||""),
+          {x:KEARNEY_LABEL_X-2,y:KEARNEY_LABEL_Y-0.15,w:3.0,h:0.17,fontSize:5,color:"C7C7CC",fontFace:"Arial",align:"right"}
+        );
       }
 
-      function addSecHeader(slide,sec,title,sub){
-        slide.addText(sec,{x:RX,y:0.35,w:RW,h:0.22,fontSize:8,bold:true,color:BRAND,fontFace:"Arial"});
-        slide.addText(title,{x:RX,y:0.6,w:RW,h:0.2,fontSize:8,color:GRAY,fontFace:"Arial"});
-        if(sub)slide.addText(sub,{x:RX,y:0.82,w:RW,h:0.18,fontSize:7,color:GRAY,fontFace:"Arial"});
-        return sub?1.08:0.88;
-      }
-
+      /* ── Left column insight text ── */
       function addLeftCol(slide,text){
-        slide.addText(text,{x:0.5,y:0.4,w:LW-0.1,h:3.5,fontSize:12,bold:true,color:BRAND,fontFace:"Arial",valign:"top",wrap:true});
-      }
-
-      function addLegend(slide,items,y){
-        items.forEach(function(it,i){
-          var lx=0.5+i*1.3;
-          if(it.stripe){
-            slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.55,h:0.35,fill:{color:"E0E0E0"},line:{color:"AAAAAA",width:0.5}});
-          } else {
-            slide.addShape(pptx.ShapeType.rect,{x:lx,y:y,w:0.22,h:0.14,fill:{color:it.c},line:{color:it.c,width:0}});
-          }
-          slide.addText(it.l,{x:lx+0.26,y:y,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
+        slide.addText(text,{
+          x:LX,y:LY,w:LW,h:LH,
+          fontSize:16,bold:true,color:BRAND,fontFace:"Arial",
+          valign:"top",wrap:true,lineSpacingMultiple:1.15
         });
       }
 
+      /* ── Section header (right side) ── */
+      function addSecHeader(slide,sec,title,sub){
+        slide.addText(sec,{
+          x:RX,y:0.42,w:RW,h:0.48,
+          fontSize:16,bold:true,color:DARK,fontFace:"Arial",valign:"top"
+        });
+        slide.addText(title,{
+          x:RX,y:0.92,w:RW,h:0.25,
+          fontSize:12,color:GRAY,fontFace:"Arial"
+        });
+        if(sub){
+          slide.addText(sub,{
+            x:RX,y:1.18,w:1.2,h:0.20,
+            fontSize:12,bold:true,color:DARK,fontFace:"Arial"
+          });
+          return 1.50;
+        }
+        return 1.30;
+      }
+
+      /* ── Legend for Estadios ── */
+      function addLegendEstadios(slide,y){
+        var items=[
+          {stripe:true,l:"\"No tengo suficiente información\""},
+          {c:"787878",l:"Estadio 1"},
+          {c:"A5A5A5",l:"Estadio 2"},
+          {c:"C8A5F0",l:"Estadio 3"},
+          {c:"7823DC",l:"Estadio 4"}
+        ];
+        var lx=LX;
+        items.forEach(function(it,i){
+          var iy=y+i*0.21;
+          if(it.stripe){
+            slide.addShape(pptx.ShapeType.rect,{
+              x:lx,y:iy,w:0.20,h:0.15,
+              fill:{color:"E0E0E0"},line:{color:"AAAAAA",width:0.5}
+            });
+          } else {
+            slide.addShape(pptx.ShapeType.rect,{
+              x:lx,y:iy,w:0.20,h:0.15,
+              fill:{color:it.c},line:{color:it.c,width:0}
+            });
+          }
+          slide.addText(it.l,{
+            x:lx+0.25,y:iy,w:2.3,h:0.15,
+            fontSize:10,color:GRAY,fontFace:"Arial",valign:"middle"
+          });
+        });
+      }
+
+      /* ── Legend for Afirmaciones ── */
+      function addLegendAfirm(slide,y){
+        var items=[
+          {c:"787878",n:"1",l:"Estoy Totalmente\nen Desacuerdo"},
+          {c:"A5A5A5",n:"2",l:"En Desacuerdo"},
+          {c:"D2D2D2",n:"0",l:"No tengo\nsuficiente Info.",stripe:true},
+          {c:"C8A5F0",n:"3",l:"De Acuerdo"},
+          {c:"7823DC",n:"4",l:"Estoy Totalmente\nde Acuerdo"}
+        ];
+        var startX=RX+1.5;var gap=1.8;
+        items.forEach(function(it,i){
+          var ix=startX+i*gap;
+          slide.addShape(pptx.ShapeType.ellipse,{
+            x:ix,y:y,w:0.28,h:0.22,
+            fill:{color:it.stripe?"D2D2D2":it.c},
+            line:{color:it.stripe?"AAAAAA":it.c,width:it.stripe?0.5:0}
+          });
+          slide.addText(it.n,{
+            x:ix,y:y,w:0.28,h:0.22,
+            fontSize:8,bold:true,color:it.c==="7823DC"||it.c==="787878"?"FFFFFF":"333333",
+            fontFace:"Arial",align:"center",valign:"middle"
+          });
+          slide.addText(it.l,{
+            x:ix-0.15,y:y+0.26,w:0.6,h:0.30,
+            fontSize:7,color:GRAY,fontFace:"Arial",align:"center",valign:"top",wrap:true
+          });
+        });
+      }
+
+      /* ── Horizontal stacked bar (Estadios & Afirmaciones) ── */
       function addHBar(slide,tema,dist,avg,rowY,barH,labelW,barX,barW,totalN,colors){
-        tema=pt(tema);var label=tema.length>52?tema.substring(0,50)+"...":tema;
-        slide.addText(label,{x:RX,y:rowY,w:labelW,h:barH,fontSize:6.5,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
+        tema=pt(tema);
+        var label=tema.length>55?tema.substring(0,53)+"...":tema;
+        slide.addText(label,{
+          x:RX,y:rowY,w:labelW,h:barH,
+          fontSize:12,color:DARK,fontFace:"Arial",align:"right",valign:"middle"
+        });
         var xPos=barX;
         dist.forEach(function(count,idx){
           if(count===0)return;
           var segW=(count/totalN)*barW;
-          slide.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:barH,fill:{color:colors[idx]},line:{color:colors[idx],width:0}});
-          if(segW>0.4){
-            slide.addText(String(count),{x:xPos,y:rowY,w:segW,h:barH,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});
+          slide.addShape(pptx.ShapeType.rect,{
+            x:xPos,y:rowY,w:segW,h:barH,
+            fill:{color:colors[idx]},line:{color:colors[idx],width:0}
+          });
+          if(segW>0.5){
+            slide.addText(String(count),{
+              x:xPos,y:rowY,w:segW,h:barH,
+              fontSize:10,bold:true,
+              color:idx===4?"FFFFFF":"333333",
+              fontFace:"Arial",align:"center",valign:"middle"
+            });
           }
           xPos+=segW;
         });
+        /* Average value */
         if(avg>0){
-          var cx=barX+barW+0.7;
-          if(avg>=3.5){
-            slide.addShape(pptx.ShapeType.ellipse,{x:cx-0.22,y:rowY,w:0.44,h:barH,fill:{type:"none"},line:{color:BRAND,width:1.2}});
+          var avgX=barX+barW+0.15;
+          var isHigh=avg>=3.5;
+          var isLow=avg<3.0;
+          if(isHigh){
+            slide.addShape(pptx.ShapeType.ellipse,{
+              x:avgX-0.02,y:rowY-0.02,w:0.48,h:barH+0.04,
+              fill:{type:"none"},line:{color:"1B9E5E",width:1.5}
+            });
           }
-          slide.addText(avg.toFixed(1),{x:cx-0.28,y:rowY,w:0.55,h:barH,fontSize:7,bold:true,color:avg>=3.5?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"});
+          if(isLow){
+            slide.addShape(pptx.ShapeType.ellipse,{
+              x:avgX-0.02,y:rowY-0.02,w:0.48,h:barH+0.04,
+              fill:{type:"none"},line:{color:"C8201E",width:1.5}
+            });
+          }
+          slide.addText(avg.toFixed(1).replace(".",","),{
+            x:avgX,y:rowY,w:0.44,h:barH,
+            fontSize:12,bold:true,
+            color:isHigh?"1B9E5E":isLow?"C8201E":DARK,
+            fontFace:"Arial",align:"center",valign:"middle"
+          });
         }
       }
 
@@ -1041,146 +1172,423 @@ function A7Informe(p){
       var s1=pptx.addSlide();
       s1.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.3,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
       s1.addShape(pptx.ShapeType.rect,{x:W/2+0.3,y:0,w:W/2-0.3,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
-      /* geometric triangles */
-      s1.addShape(pptx.ShapeType.rtTriangle,{x:W/2+0.6,y:0.4,w:W/2-0.9,h:H-0.8,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0},rotate:0});
-      s1.addText("Análisis de resultados\ndel levantamiento de\nperspectivas",{x:0.8,y:1.1,w:LW,h:1.8,fontSize:24,bold:true,color:BRAND,fontFace:"Arial",wrap:true,lineSpacingMultiple:1.2});
-      s1.addText(co.nombre||"Empresa",{x:0.8,y:3.1,w:LW,h:0.35,fontSize:13,bold:true,color:DARK,fontFace:"Arial"});
-      s1.addText(co.anio||String(new Date().getFullYear()),{x:0.8,y:3.5,w:LW,h:0.25,fontSize:10,color:GRAY,fontFace:"Arial"});
-      s1.addText("KEARNEY",{x:0.8,y:H-1.2,w:5,h:0.6,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
+      s1.addShape(pptx.ShapeType.rtTriangle,{
+        x:W/2+0.6,y:0.4,w:W/2-0.9,h:H-0.8,
+        fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0},rotate:0
+      });
+      s1.addText("Análisis de resultados\ndel levantamiento de\nperspectivas",{
+        x:0.8,y:1.0,w:5.5,h:2.2,
+        fontSize:32,bold:true,color:BRAND,fontFace:"Arial",
+        wrap:true,lineSpacingMultiple:1.15
+      });
+      s1.addText(co.nombre||"Empresa",{
+        x:0.8,y:3.5,w:5,h:0.45,
+        fontSize:16,bold:true,color:DARK,fontFace:"Arial"
+      });
+      s1.addText(co.anio||String(new Date().getFullYear()),{
+        x:0.8,y:4.0,w:5,h:0.35,
+        fontSize:13,color:GRAY,fontFace:"Arial"
+      });
+      s1.addText("KEARNEY",{
+        x:0.8,y:H-1.2,w:5,h:0.6,
+        fontSize:18,bold:true,color:DARK,fontFace:"Arial"
+      });
       var pn=2;
 
       /* ══════ TABLA DE CONTENIDO ══════ */
       var s2=pptx.addSlide();
-      s2.addShape(pptx.ShapeType.rect,{x:0,y:0,w:0.12,h:H,fill:{color:BRAND},line:{color:BRAND,width:0}});
-      s2.addText("Análisis de resultados del levantamiento de perspectivas",{x:0.5,y:0.28,w:W-1,h:0.35,fontSize:13,bold:true,color:BRAND,fontFace:"Arial"});
-      s2.addText(co.nombre||"",{x:0.5,y:0.65,w:W-1,h:0.2,fontSize:9,color:GRAY,fontFace:"Arial"});
-      s2.addShape(pptx.ShapeType.line,{x:0,y:0.88,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
-      var eD2=procE(p.resps,p.sel,p.customEstadios||[]);var aD2=procA(p.resps,p.sel,allAfirm);var cD2=procC(p.resps,p.comites||[],allComiteAfirm);
-      var tocSecs=[];
-      if(eD2.qs.length)tocSecs.push({t:"Estadios de Excelencia",s:eD2.qs.length+" dimensiones",c:BRAND});
-      if(aD2.qs.length)tocSecs.push({t:"Resultados Afirmaciones",s:aD2.qs.length+" afirmaciones",c:BRAND});
-      cD2.filter(function(c){return c.qs&&c.qs.length}).forEach(function(c){tocSecs.push({t:"Comité: "+c.nombre,s:"Promedio "+(c.avg?c.avg.toFixed(1):"—"),c:"0891B2"})});
-      var has3P=p.resps.some(function(r){return r.answers&&r.answers.abiertas&&r.answers.abiertas["3P"]&&r.answers.abiertas["3P"].trim()});
-      if(has3P)tocSecs.push({t:"Perfil nuevo miembro",s:"Características identificadas",c:"1B9E5E"});
-      if(preguntas.length)tocSecs.push({t:"Preguntas críticas",s:"3 por participante",c:BRAND});
-      if(rank6.length)tocSecs.push({t:"Plan de acción estratégico",s:"Próximos 3 años",c:BRAND});
-      if(rank5.length)tocSecs.push({t:"Áreas de formación",s:"Prioridades directores",c:"C6973B"});
-      var nCols=2;var colWT=(W-0.6)/nCols;var yT=1.0;var rowHT=0.7;
-      tocSecs.forEach(function(s,i){
-        var col=i%nCols;var row=Math.floor(i/nCols);
-        var cx=0.3+col*(colWT+0.2);var cy=yT+row*(rowHT+0.12);
-        s2.addShape(pptx.ShapeType.rect,{x:cx,y:cy,w:0.08,h:rowHT,fill:{color:s.c},line:{color:s.c,width:0}});
-        var r2=parseInt(s.c.slice(0,2),16),g2=parseInt(s.c.slice(2,4),16),b2=parseInt(s.c.slice(4,6),16);
-        var mix=function(v){return Math.round(v+(255-v)*0.9).toString(16).padStart(2,"0")};
-        var bgc=mix(r2)+mix(g2)+mix(b2);
-        s2.addShape(pptx.ShapeType.rect,{x:cx+0.08,y:cy,w:colWT-0.08,h:rowHT,fill:{color:bgc},line:{color:bgc,width:0}});
-        s2.addText(s.t,{x:cx+0.12,y:cy+0.08,w:colWT-0.2,h:0.25,fontSize:8,bold:true,color:s.c,fontFace:"Arial"});
-        s2.addText(s.s,{x:cx+0.12,y:cy+0.38,w:colWT-0.2,h:0.2,fontSize:6.5,color:GRAY,fontFace:"Arial"});
+      s2.addText("Análisis de resultados\ndel levantamiento de\nperspectivas – "+(co.nombre||""),{
+        x:LX,y:LY,w:W-1,h:2.0,
+        fontSize:28,bold:true,color:BRAND,fontFace:"Arial",
+        wrap:true,lineSpacingMultiple:1.1
       });
-      var statY=H-1.0;
-      s2.addShape(pptx.ShapeType.rect,{x:0,y:statY,w:W,h:0.8,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
-      s2.addShape(pptx.ShapeType.line,{x:0,y:statY,w:W,h:0,line:{color:"DCE6FA",width:0.5}});
-      var stats=[{l:"Participantes",v:String(N)},{l:"Promedio Estadios",v:eD2.avg?eD2.avg.toFixed(1):"—"},{l:"Promedio Afirmaciones",v:aD2.avg?aD2.avg.toFixed(1):"—"},{l:"Comités evaluados",v:String(cD2.filter(function(c){return c.qs&&c.qs.length}).length)}];
-      stats.forEach(function(s,i){var sw=W/stats.length;
-        s2.addText(s.v,{x:sw*i,y:statY+0.1,w:sw,h:0.4,fontSize:20,bold:true,color:BRAND,fontFace:"Arial",align:"center"});
-        s2.addText(s.l,{x:sw*i,y:statY+0.52,w:sw,h:0.2,fontSize:6.5,color:GRAY,fontFace:"Arial",align:"center"});
+      s2.addText(String(pn),{
+        x:PAGE_NUM_X,y:PAGE_NUM_Y,w:0.41,h:0.30,
+        fontSize:10,bold:true,color:DARK,fontFace:"Arial",valign:"middle"
       });
-      addShell(s2,pn,co.nombre);pn++;
+      s2.addText("KEARNEY",{
+        x:PAGE_NUM_X+0.55,y:PAGE_NUM_Y,w:1.2,h:0.30,
+        fontSize:10,bold:true,color:DARK,fontFace:"Arial",valign:"middle"
+      });
+      s2.addText("Kearney – "+(co.nombre||""),{
+        x:KEARNEY_LABEL_X-2,y:KEARNEY_LABEL_Y-0.15,w:3.0,h:0.17,
+        fontSize:5,color:"C7C7CC",fontFace:"Arial",align:"right"
+      });
+      pn++;
 
-      /* ══════ ESTADIOS ══════ */
+      /* ══════ ESTADIOS DE EXCELENCIA ══════ */
       var eD=procE(p.resps,p.sel,p.customEstadios||[]);
       if(eD.qs.length>0){
         var sE=pptx.addSlide();
         var sortedE=eD.qs.slice().sort(function(a,b){return b.avg-a.avg});
-        var topE=sortedE[0];
-        var insE=topE?"Los resultados muestran que "+pt(topE.tema).toLowerCase()+" alcanza un promedio de "+topE.avg.toFixed(1)+", en nivel de "+(topE.avg>=3.5?"Alto Desempeño":topE.avg>=2.5?"Estándares Internacionales":"Cumplimiento Local")+".":"Estadios de Excelencia";
+        var topE=sortedE[0];var botE=sortedE[sortedE.length-1];
+
+        /* Left column insight */
+        var insTextParts=[];
+        if(topE){
+          insTextParts.push(pt(topE.tema).toLowerCase()+" muestra el mayor desempeño en Estadios de Excelencia");
+        }
+        if(botE&&botE.id!==topE.id){
+          insTextParts.push("mientras que "+pt(botE.tema).toLowerCase()+" identifica una oportunidad de mejora");
+        }
+        var insE=insTextParts.length>0
+          ?"Desde la perspectiva de los participantes, "+insTextParts.join(", ")
+          :"Estadios de Excelencia";
         addLeftCol(sE,insE);
-        addLegend(sE,[{stripe:true,l:"Sin información"},{c:"787878",l:"Estadio 1"},{c:"D2D2D2",l:"Estadio 2"},{c:"C8A5F0",l:"Estadio 3"},{c:"7823DC",l:"Estadio 4"}],H-1.6);
-        var yE=addSecHeader(sE,"Estadios de Excelencia","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","(N= "+N+")");
-        sE.addText("Percepción promedio",{x:RX+RW,y:yE-0.3,w:2.5,h:0.3,fontSize:6,color:GRAY,fontFace:"Arial"});
-        var bH=0.22;var bGap=0.1;var lW2=2.2;var bX=RX+lW2+0.06;var bW=RW-lW2-0.8;
-        sortedE.forEach(function(q,qi){
-          if(yE+qi*(bH+bGap)>H-1.2)return;
-          addHBar(sE,q.tema,q.dist,q.avg,yE+qi*(bH+bGap),bH,lW2,bX,bW,N,COL_E);
+
+        /* Legend bottom-left */
+        addLegendEstadios(sE,5.59);
+
+        /* Section header */
+        var yE=addSecHeader(sE,
+          "Estadios de Excelencia",
+          "Calificación promedio de resultados la Herramienta de Recolección de Perspectivas",
+          "(N= "+N+")"
+        );
+
+        /* "Percepción promedio" header */
+        sE.addText("Percepción\npromedio",{
+          x:RX+RW-1.5,y:yE-0.55,w:1.01,h:0.36,
+          fontSize:12,bold:true,color:DARK,fontFace:"Arial",align:"center",wrap:true
         });
-        /* zone labels */
+
+        /* Bars */
+        var barH=0.32;var barGap=0.34;
+        var labelW=2.38;var barX=RX+labelW+0.24;
+        var barW=RW-labelW-1.5;
+
+        sortedE.forEach(function(q,qi){
+          var rowY=yE+qi*barGap;
+          if(rowY+barH>FOOTER_Y-0.2)return;
+          addHBar(sE,q.tema,q.dist,q.avg,rowY,barH,labelW,barX,barW,N,COL_E);
+        });
+
+        /* Zone labels (braces) */
         var z4=sortedE.filter(function(q){return q.avg>=3.5});
         var z3=sortedE.filter(function(q){return q.avg>=2.5&&q.avg<3.5});
-        if(z4.length)sE.addText("E4: Alto\nDesempeño",{x:bX+bW+0.15,y:yE,w:0.85,h:z4.length*(bH+bGap),fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
-        if(z3.length)sE.addText("E3: Estándares\nInternacionales",{x:bX+bW+0.15,y:yE+z4.length*(bH+bGap),w:0.85,h:z3.length*(bH+bGap),fontSize:6,color:GRAY,fontFace:"Arial",align:"center",valign:"middle",wrap:true});
+        var avgX=barX+barW+0.15;
+        var braceX=avgX+0.55;
+
+        if(z4.length){
+          var z4startY=yE;
+          var z4endY=yE+(z4.length-1)*barGap+barH;
+          slide_addBrace(sE,braceX,z4startY,z4endY-z4startY);
+          sE.addText("Estadio 4: Alto\nDesempeño",{
+            x:braceX+0.22,y:z4startY,w:1.89,h:z4endY-z4startY,
+            fontSize:14,bold:true,color:BRAND,fontFace:"Arial",
+            valign:"middle",wrap:true
+          });
+        }
+        if(z3.length){
+          var z3startY=yE+z4.length*barGap;
+          var z3endY=z3startY+(z3.length-1)*barGap+barH;
+          slide_addBrace(sE,braceX,z3startY,z3endY-z3startY);
+          sE.addText("Estadio 3: Estándares\nInternacionales",{
+            x:braceX+0.22,y:z3startY,w:1.89,h:z3endY-z3startY,
+            fontSize:12,bold:true,color:"C4A2EB",fontFace:"Arial",
+            valign:"middle",wrap:true
+          });
+        }
+
         addShell(sE,pn,co.nombre);pn++;
+      }
+
+      /* Helper: draw a left brace shape */
+      function slide_addBrace(slide,x,y,h){
+        slide.addShape(pptx.ShapeType.rect,{
+          x:x,y:y,w:0.03,h:h,
+          fill:{color:LGRAY},line:{color:LGRAY,width:0}
+        });
+        slide.addShape(pptx.ShapeType.rect,{
+          x:x,y:y,w:0.12,h:0.03,
+          fill:{color:LGRAY},line:{color:LGRAY,width:0}
+        });
+        slide.addShape(pptx.ShapeType.rect,{
+          x:x,y:y+h-0.03,w:0.12,h:0.03,
+          fill:{color:LGRAY},line:{color:LGRAY,width:0}
+        });
       }
 
       /* ══════ AFIRMACIONES ══════ */
       var aD=procA(p.resps,p.sel,allAfirm);
       if(aD.qs.length>0){
-        var sA=pptx.addSlide();
+        /* Split afirmaciones across multiple slides if needed (max 5 per slide) */
         var sortedA=aD.qs.slice().sort(function(a,b){return b.avg-a.avg});
-        var topA=sortedA[0];var botA=sortedA[sortedA.length-1];
-        var insA=topA?"Las afirmaciones muestran mayor acuerdo en "+pt(topA.tema).toLowerCase()+(botA&&botA.id!==topA.id?", mientras "+botA.tema.toLowerCase()+" requiere atención":"")+".":"Resultados Afirmaciones";
-        addLeftCol(sA,insA);
-        addLegend(sA,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desacuerdo"},{c:"D2D2D2",l:"En Desacuerdo"},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
-        sA.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-0.88,w:0.13,h:0.13,fill:{type:"none"},line:{color:BRAND,width:1}});
-        sA.addText("Aspecto a profundizar",{x:0.68,y:H-0.88,w:1.2,h:0.13,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        var yA=addSecHeader(sA,"Resultados Afirmaciones","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
-        var aBarH=0.22;var aGap=0.12;var aLW=2.5;var aBX=RX+aLW+0.06;var aBW=RW-aLW-0.8;
-        sA.addText("Afirmaciones",{x:RX,y:yA-0.12,w:aLW,h:0.14,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
-        sA.addText("Respuestas (N="+N+")",{x:aBX,y:yA-0.12,w:aBW,h:0.14,fontSize:6.5,bold:true,color:GRAY,fontFace:"Arial"});
-        sA.addText("Percepción promedio",{x:aBX+aBW+0.08,y:yA-0.12,w:0.9,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial"});
-        sortedA.forEach(function(q,qi){
-          if(yA+qi*(aBarH+aGap)>H-1.5)return;
-          var rowY=yA+qi*(aBarH+aGap);
-          sA.addShape(pptx.ShapeType.rect,{x:RX,y:rowY,w:0.18,h:aBarH,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
-          sA.addText(String(qi+1),{x:RX,y:rowY,w:0.18,h:aBarH,fontSize:6.5,bold:true,color:BRAND,fontFace:"Arial",align:"center",valign:"middle"});
-          var txt=q.tema.length>55?q.tema.substring(0,53)+"...":q.tema;
-          sA.addText(txt,{x:RX+0.2,y:rowY,w:aLW-0.2,h:aBarH,fontSize:6.5,color:DARK,fontFace:"Arial",valign:"middle"});
-          var xPos=aBX;
-          q.dist.forEach(function(count,idx){
-            if(count===0)return;
-            var segW=(count/N)*aBW;
-            sA.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:aBarH,fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}});
-            if(segW>0.4)sA.addText(String(count),{x:xPos,y:rowY,w:segW,h:aBarH,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});
-            xPos+=segW;
+        var AFIRM_PER_SLIDE=5;
+        var afirmPages=[];
+        for(var ai=0;ai<sortedA.length;ai+=AFIRM_PER_SLIDE){
+          afirmPages.push(sortedA.slice(ai,ai+AFIRM_PER_SLIDE));
+        }
+
+        afirmPages.forEach(function(pageQs,pageIdx){
+          var sA=pptx.addSlide();
+          var topA=sortedA[0];var botA=sortedA[sortedA.length-1];
+
+          /* Left column insight */
+          var insA="";
+          if(pageIdx===0){
+            insA=topA
+              ?"Se refuerza la percepción positiva en "+pt(topA.tema).toLowerCase()
+                +(botA&&botA.id!==topA.id?", mientras que "+pt(botA.tema).toLowerCase()+" presenta oportunidad de mejora":"")
+              :"Resultados Afirmaciones";
+          } else {
+            insA="Resultados Afirmaciones (continuación)";
+          }
+          addLeftCol(sA,insA);
+
+          /* "Aspecto a profundizar" legend */
+          sA.addShape(pptx.ShapeType.ellipse,{
+            x:LX,y:6.1,w:0.18,h:0.18,
+            fill:{type:"none"},line:{color:"FFBF00",width:1.2}
           });
-          if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sA.addShape(pptx.ShapeType.ellipse,{x:aBX+aBW+0.15,y:rowY,w:0.4,h:aBarH,fill:{type:"none"},line:{color:BRAND,width:1.2}})}sA.addText(q.avg.toFixed(1),{x:aBX+aBW+0.15,y:rowY,w:0.4,h:aBarH,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
+          sA.addText("Aspecto a profundizar",{
+            x:LX+0.24,y:6.1,w:2.0,h:0.18,
+            fontSize:10,color:GRAY,fontFace:"Arial",valign:"middle"
+          });
+
+          /* Section header */
+          var yA=addSecHeader(sA,
+            "Resultados Afirmaciones",
+            "Calificación promedio de resultados la Herramienta de Recolección de Perspectivas",
+            ""
+          );
+
+          /* Column headers */
+          var aLabelW=3.8;var aBX=RX+aLabelW+0.24;var aBW=RW-aLabelW-1.5;
+          sA.addText("Afirmaciones",{
+            x:RX+0.3,y:yA-0.05,w:aLabelW-0.3,h:0.22,
+            fontSize:12,bold:true,color:DARK,fontFace:"Arial"
+          });
+          sA.addText("Respuestas (N="+N+"*)",{
+            x:aBX,y:yA-0.05,w:aBW,h:0.22,
+            fontSize:12,bold:true,color:BRAND,fontFace:"Arial"
+          });
+          sA.addText("Percepción\npromedio",{
+            x:aBX+aBW+0.05,y:yA-0.15,w:0.9,h:0.35,
+            fontSize:10,bold:true,color:DARK,fontFace:"Arial",align:"center",wrap:true
+          });
+
+          var startIdx=pageIdx*AFIRM_PER_SLIDE;
+          yA+=0.25;
+          /* Row height and gap for afirmaciones */
+          var aRowH=0.65;var aGap=0.18;
+
+          pageQs.forEach(function(q,qi){
+            var rowY=yA+qi*(aRowH+aGap);
+            if(rowY+aRowH>FOOTER_Y-0.6)return;
+            var globalIdx=startIdx+qi+1;
+
+            /* Gray/white alternating background */
+            if(qi%2===0){
+              slide.addShape&&sA.addShape(pptx.ShapeType.rect,{
+                x:RX,y:rowY,w:RW,h:aRowH,
+                fill:{color:"F5F5F5"},line:{color:"F5F5F5",width:0}
+              });
+            }
+
+            /* Number badge */
+            sA.addShape(pptx.ShapeType.rect,{
+              x:RX+0.05,y:rowY+0.1,w:0.30,h:aRowH-0.2,
+              fill:{color:BRAND},line:{color:BRAND,width:0}
+            });
+            sA.addText(String(globalIdx),{
+              x:RX+0.05,y:rowY+0.1,w:0.30,h:aRowH-0.2,
+              fontSize:12,bold:true,color:WHITE,fontFace:"Arial",
+              align:"center",valign:"middle"
+            });
+
+            /* Afirmación text (multi-line, bold key phrases would need manual handling) */
+            var txt=pt(q.tema);
+            sA.addText(txt,{
+              x:RX+0.42,y:rowY+0.04,w:aLabelW-0.42,h:aRowH-0.08,
+              fontSize:9,color:DARK,fontFace:"Arial",valign:"middle",wrap:true
+            });
+
+            /* Stacked bar */
+            var xPos=aBX;
+            q.dist.forEach(function(count,idx){
+              if(count===0)return;
+              var segW=(count/N)*aBW;
+              sA.addShape(pptx.ShapeType.rect,{
+                x:xPos,y:rowY+0.08,w:segW,h:aRowH-0.16,
+                fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}
+              });
+              if(segW>0.45){
+                sA.addText(String(count),{
+                  x:xPos,y:rowY+0.08,w:segW,h:aRowH-0.16,
+                  fontSize:10,bold:true,
+                  color:idx===4?"FFFFFF":"333333",
+                  fontFace:"Arial",align:"center",valign:"middle"
+                });
+              }
+              xPos+=segW;
+            });
+
+            /* Average */
+            if(q.avg>0){
+              var avgX2=aBX+aBW+0.15;
+              var isHigh2=q.avg>=3.5;
+              var isLow2=q.avg<3.0;
+              if(isHigh2){
+                sA.addShape(pptx.ShapeType.ellipse,{
+                  x:avgX2-0.02,y:rowY+0.06,w:0.50,h:aRowH-0.12,
+                  fill:{type:"none"},line:{color:"1B9E5E",width:1.5}
+                });
+              }
+              if(isLow2){
+                sA.addShape(pptx.ShapeType.ellipse,{
+                  x:avgX2-0.02,y:rowY+0.06,w:0.50,h:aRowH-0.12,
+                  fill:{type:"none"},line:{color:"C8201E",width:1.5}
+                });
+              }
+              sA.addText(q.avg.toFixed(1).replace(".",","),{
+                x:avgX2,y:rowY+0.08,w:0.44,h:aRowH-0.16,
+                fontSize:12,bold:true,
+                color:isHigh2?"1B9E5E":isLow2?"C8201E":DARK,
+                fontFace:"Arial",align:"center",valign:"middle"
+              });
+            }
+          });
+
+          /* Scale legend at bottom */
+          addLegendAfirm(sA,FOOTER_Y-0.65);
+
+          addShell(sA,pn,co.nombre);pn++;
         });
-        /* scale labels */
-        var scY=H-0.55;var scLabs=["1\nTot. Desac.","2\nDesac.","0\nSin Info.","3\nAcuerdo","4\nTot. Acuerdo"];var scColors=[COL_E[1],COL_E[2],COL_E[0],COL_E[3],COL_E[4]];
-        scLabs.forEach(function(sl,si){var sx=aBX+si*(aBW/5);sA.addShape(pptx.ShapeType.rect,{x:sx,y:scY,w:0.28,h:0.14,fill:{color:scColors[si]},line:{color:scColors[si],width:0}});sA.addText(sl.split("\n")[0],{x:sx,y:scY,w:0.28,h:0.14,fontSize:6,bold:true,color:"FFFFFF",fontFace:"Arial",align:"center",valign:"middle"});sA.addText(sl.split("\n")[1]||"",{x:sx,y:scY+0.14,w:0.28,h:0.12,fontSize:5.5,color:GRAY,fontFace:"Arial",align:"center"})});
-        addShell(sA,pn,co.nombre);pn++;
       }
 
-      /* ══════ COMITÉS ══════ */
+      /* ══════ COMITÉS DE APOYO ══════ */
       var cD=procC(p.resps,p.comites||[],allComiteAfirm);
       var activeCom=cD.filter(function(c){return c.qs&&c.qs.length});
       if(activeCom.length>0){
         var sC=pptx.addSlide();
         var topCom=activeCom.slice().sort(function(a,b){return b.avg-a.avg})[0];
-        addLeftCol(sC,topCom?"Los resultados muestran una valoración favorable de los Comités, con mayor desempeño en el Comité de "+topCom.nombre+".":"Resultados Evaluación de Comités de Apoyo");
-        addLegend(sC,[{stripe:true,l:"Sin información"},{c:"787878",l:"Tot. Desac."},{c:"D2D2D2",l:"En Desac."},{c:"C8A5F0",l:"De Acuerdo"},{c:"7823DC",l:"Tot. Acuerdo"}],H-1.6);
-        sC.addShape(pptx.ShapeType.ellipse,{x:0.5,y:H-0.88,w:0.13,h:0.13,fill:{type:"none"},line:{color:BRAND,width:1}});
-        sC.addText("Aspecto a profundizar",{x:0.68,y:H-0.88,w:1.2,h:0.13,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        var yC=addSecHeader(sC,"Resultados Evaluación de Comités de Apoyo","Calificación promedio de resultados la Herramienta de Recolección de Perspectivas","");
-        var nCC=activeCom.length;var cCW=Math.min(1.5,(RW-0.12)/nCC);
-        activeCom.forEach(function(com,ci){
-          var cx=RX+ci*(cCW+0.3);var isTop=com===topCom;
-          if(isTop){sC.addShape(pptx.ShapeType.rect,{x:cx-0.03,y:yC-0.12,w:cCW+0.06,h:H-yC-0.5,fill:{type:"none"},line:{color:BRAND,width:1.2,dashType:"dash"}})}
-          sC.addText(com.nombre,{x:cx,y:yC,w:cCW,h:0.22,fontSize:7,bold:isTop,color:isTop?BRAND:GRAY,fontFace:"Arial",align:"center",wrap:true});
-          sC.addText("(N="+N+")",{x:cx,y:yC+0.24,w:cCW,h:0.15,fontSize:6,color:GRAY,fontFace:"Arial",align:"center"});
+
+        addLeftCol(sC,
+          topCom
+            ?"Los resultados muestran una valoración favorable del funcionamiento de los Comités, con fortalezas claras en el "+topCom.nombre+"."
+            :"Resultados Evaluación de Comités de Apoyo"
+        );
+
+        /* "Aspecto a profundizar" */
+        sC.addShape(pptx.ShapeType.ellipse,{
+          x:LX,y:6.1,w:0.18,h:0.18,
+          fill:{type:"none"},line:{color:"FFBF00",width:1.2}
         });
+        sC.addText("Aspecto a profundizar",{
+          x:LX+0.24,y:6.1,w:2.0,h:0.18,
+          fontSize:10,color:GRAY,fontFace:"Arial",valign:"middle"
+        });
+
+        var yC=addSecHeader(sC,
+          "Resultados Evaluación de Comités de Apoyo",
+          "Calificación promedio de resultados la Herramienta de Recolección de Perspectivas",
+          ""
+        );
+
+        /* Comité columns */
+        var nCC=activeCom.length;
+        var comColW=Math.min(2.0,(RW-0.5)/nCC);
+        var comLabelW=1.2;
+        var comStartX=RX+comLabelW+0.3;
+
+        /* Column headers for each comité */
+        activeCom.forEach(function(com,ci){
+          var cx=comStartX+ci*(comColW+0.15);
+          var isTop=com===topCom;
+          sC.addText(com.nombre+"\n(N="+N+")",{
+            x:cx,y:yC,w:comColW,h:0.55,
+            fontSize:9,bold:isTop,color:isTop?BRAND:GRAY,
+            fontFace:"Arial",align:"center",valign:"top",wrap:true
+          });
+          /* Dashed border for top comité */
+          if(isTop){
+            sC.addShape(pptx.ShapeType.rect,{
+              x:cx-0.06,y:yC-0.06,w:comColW+0.12,h:5.0,
+              fill:{type:"none"},line:{color:"1B9E5E",width:1.2,dashType:"dash"}
+            });
+          }
+        });
+
+        /* Collect all temas across comités */
         var allTemas=[];
-        activeCom.forEach(function(c){c.qs.forEach(function(q){if(!allTemas.includes(q.tema))allTemas.push(q.tema)})});
-        var rowHC=0.22;var gapC=0.14;var startYC=yC+0.48;
-        allTemas.forEach(function(tema,ti){
-          var rowY=startYC+ti*(rowHC+gapC);if(rowY>H-1.2)return;
-          sC.addText(tema,{x:RX-0.05,y:rowY,w:LW,h:rowHC,fontSize:7,bold:true,color:DARK,fontFace:"Arial",align:"right",valign:"middle"});
-          activeCom.forEach(function(com,ci){
-            var cx=RX+ci*(cCW+0.3);var q=com.qs.find(function(x){return x.tema===tema});if(!q)return;
-            var bW2=cCW-0.3;var xPos=cx;
-            q.dist.forEach(function(count,idx){if(count===0)return;var segW=(count/N)*bW2;sC.addShape(pptx.ShapeType.rect,{x:xPos,y:rowY,w:segW,h:rowHC,fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}});if(segW>0.35)sC.addText(String(count),{x:xPos,y:rowY,w:segW,h:rowHC,fontSize:5.5,bold:true,color:idx===4?"FFFFFF":"333333",fontFace:"Arial",align:"center",valign:"middle"});xPos+=segW});
-            if(q.avg>0){var isHi=q.avg>=3.5;if(isHi){sC.addShape(pptx.ShapeType.ellipse,{x:cx+bW2+0.04,y:rowY,w:0.32,h:rowHC,fill:{type:"none"},line:{color:BRAND,width:1}})}sC.addText(q.avg.toFixed(1),{x:cx+bW2+0.04,y:rowY,w:0.32,h:rowHC,fontSize:7,bold:true,color:isHi?BRAND:DARK,fontFace:"Arial",align:"center",valign:"middle"})}
+        activeCom.forEach(function(c){
+          c.qs.forEach(function(q){
+            if(!allTemas.includes(q.tema))allTemas.push(q.tema);
           });
         });
+
+        /* Rows */
+        var cRowH=0.30;var cGap=0.30;var cStartY=yC+0.65;
+        allTemas.forEach(function(tema,ti){
+          var rowY=cStartY+ti*(cRowH+cGap);
+          if(rowY+cRowH>FOOTER_Y-0.8)return;
+
+          /* Row label on the left */
+          sC.addText(tema,{
+            x:RX,y:rowY,w:comLabelW,h:cRowH,
+            fontSize:10,bold:true,color:DARK,fontFace:"Arial",
+            align:"right",valign:"middle"
+          });
+
+          /* Bar + avg for each comité */
+          activeCom.forEach(function(com,ci){
+            var cx=comStartX+ci*(comColW+0.15);
+            var q=com.qs.find(function(x){return x.tema===tema});
+            if(!q)return;
+
+            var cBarW=comColW-0.55;
+            var xPos=cx;
+            q.dist.forEach(function(count,idx){
+              if(count===0)return;
+              var segW=(count/N)*cBarW;
+              sC.addShape(pptx.ShapeType.rect,{
+                x:xPos,y:rowY,w:segW,h:cRowH,
+                fill:{color:COL_E[idx]},line:{color:COL_E[idx],width:0}
+              });
+              if(segW>0.35){
+                sC.addText(String(count),{
+                  x:xPos,y:rowY,w:segW,h:cRowH,
+                  fontSize:9,bold:true,
+                  color:idx===4?"FFFFFF":"333333",
+                  fontFace:"Arial",align:"center",valign:"middle"
+                });
+              }
+              xPos+=segW;
+            });
+
+            /* Average */
+            if(q.avg>0){
+              sC.addText(q.avg.toFixed(1).replace(".",","),{
+                x:cx+cBarW+0.04,y:rowY,w:0.45,h:cRowH,
+                fontSize:11,bold:true,
+                color:q.avg>=3.5?"1B9E5E":q.avg<3.0?"C8201E":DARK,
+                fontFace:"Arial",align:"center",valign:"middle"
+              });
+            }
+          });
+        });
+
+        /* Bottom legend */
+        var lgY=FOOTER_Y-0.5;
+        var lgItems=[
+          {c:"787878",l:"Totalmente en desacuerdo"},
+          {c:"A5A5A5",l:"En desacuerdo"},
+          {c:"C8A5F0",l:"De acuerdo"},
+          {c:"7823DC",l:"Totalmente de acuerdo"}
+        ];
+        lgItems.forEach(function(it,i){
+          var lgx=LX+i*1.6;
+          sC.addShape(pptx.ShapeType.rect,{
+            x:lgx,y:lgY,w:0.18,h:0.14,
+            fill:{color:it.c},line:{color:it.c,width:0}
+          });
+          sC.addText(it.l,{
+            x:lgx+0.22,y:lgY,w:1.3,h:0.14,
+            fontSize:8,color:GRAY,fontFace:"Arial",valign:"middle"
+          });
+        });
+
         addShell(sC,pn,co.nombre);pn++;
       }
 
@@ -1188,71 +1596,193 @@ function A7Informe(p){
       if(rank6.length>0){
         var s6=pptx.addSlide();
         var top6=rank6[0];
-        addLeftCol(s6,top6?"La priorización de temas refleja consistencia en: "+top6.tema.substring(0,100)+".":"Plan de acción estratégico");
-        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.88,w:0.22,h:0.14,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
-        s6.addText("Directores",{x:0.75,y:H-0.88,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        s6.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.7,w:0.22,h:0.14,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
-        s6.addText("Alta Gerencia",{x:0.75,y:H-0.7,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        var y6=addSecHeader(s6,"Plan de acción para priorizar en los próximos 3 años","Resultados obtenidos – cada participante escogió 3 temas estratégicos","(N= "+N+")");
-        var mx6=rank6[0]?rank6[0].total:1;var bH6=0.2;var g6=0.08;var lW6=3.5;var bX6=RX+lW6+0.06;var bW6=RW-lW6-1.0;
+        addLeftCol(s6,
+          top6
+            ?"La priorización de los temas refleja consistencia, posicionando "+top6.tema.substring(0,80)+" como un foco clave."
+            :"Plan de acción estratégico"
+        );
+
+        /* Legend: Directores / Alta Gerencia */
+        sC_addRoleLegend(s6);
+
+        var y6=addSecHeader(s6,
+          "Plan de acción para priorizar en los próximos 3 años",
+          "Resultados obtenidos – cada participante escogió 3 temas estratégicos",
+          "(N= "+N+")"
+        );
+
+        var mx6=rank6[0]?rank6[0].total:1;
+        var bH6=0.28;var g6=0.10;
+        var lW6=3.8;var bX6=RX+lW6+0.12;
+        var bW6=RW-lW6-1.2;
         var uPx6=(umbral/Math.max(mx6,1))*bW6;
+
         rank6.forEach(function(item,i){
-          if(y6+i*(bH6+g6)>H-1.3)return;
-          var rowY=y6+i*(bH6+g6);var isH=item.total>=umbral;
+          if(y6+i*(bH6+g6)>FOOTER_Y-0.8)return;
+          var rowY=y6+i*(bH6+g6);
+          var isH=item.total>=umbral;
           var label=item.tema.length>70?item.tema.substring(0,68)+"...":item.tema;
-          s6.addText(label,{x:RX,y:rowY,w:lW6,h:bH6,fontSize:6.5,bold:isH,color:isH?DARK:GRAY,fontFace:"Arial",align:"right",valign:"middle"});
+          s6.addText(label,{
+            x:RX,y:rowY,w:lW6,h:bH6,
+            fontSize:10,bold:isH,color:isH?DARK:GRAY,
+            fontFace:"Arial",align:"right",valign:"middle"
+          });
           var bLen=(item.total/Math.max(mx6,1))*bW6;
-          s6.addShape(pptx.ShapeType.rect,{x:bX6,y:rowY,w:bLen,h:bH6,fill:{color:isH?"7823DC":"C8C8C8"},line:{color:isH?"7823DC":"C8C8C8",width:0}});
-          s6.addText(String(item.total),{x:bX6+bLen+0.1,y:rowY,w:0.5,h:bH6,fontSize:7,bold:true,color:DARK,fontFace:"Arial",valign:"middle"});
+          s6.addShape(pptx.ShapeType.rect,{
+            x:bX6,y:rowY,w:bLen,h:bH6,
+            fill:{color:isH?BRAND:"C8A5F0"},
+            line:{color:isH?BRAND:"C8A5F0",width:0}
+          });
+          if(isH){
+            s6.addShape(pptx.ShapeType.ellipse,{
+              x:bX6+bLen+0.08,y:rowY,w:0.38,h:bH6,
+              fill:{type:"none"},line:{color:"1B9E5E",width:1.5}
+            });
+          }
+          s6.addText(String(item.total),{
+            x:bX6+bLen+0.12,y:rowY,w:0.30,h:bH6,
+            fontSize:11,bold:true,color:DARK,fontFace:"Arial",
+            align:"center",valign:"middle"
+          });
         });
-        s6.addShape(pptx.ShapeType.line,{x:bX6+uPx6,y:y6-0.3,w:0,h:rank6.length*(bH6+g6)+0.3,line:{color:"C8201E",width:1,dashType:"sysDash"}});
-        s6.addText("Umbral: "+umbral+" de "+N,{x:bX6+uPx6+0.04,y:y6-0.15,w:1.0,h:0.14,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
+
+        /* Umbral line */
+        s6.addShape(pptx.ShapeType.line,{
+          x:bX6+uPx6,y:y6-0.15,w:0,
+          h:Math.min(rank6.length*(bH6+g6)+0.15,FOOTER_Y-y6-0.5),
+          line:{color:DARK,width:1,dashType:"sysDash"}
+        });
+        s6.addText("Umbral: Supera el 50%\nde los participantes (N)",{
+          x:bX6+uPx6-1.5,y:FOOTER_Y-0.6,w:1.5,h:0.35,
+          fontSize:7,bold:true,color:DARK,fontFace:"Arial",align:"right",wrap:true
+        });
+
         addShell(s6,pn,co.nombre);pn++;
+      }
+
+      /* Helper: role legend for 6AC / 5PA */
+      function sC_addRoleLegend(slide){
+        slide.addShape(pptx.ShapeType.rect,{
+          x:LX,y:5.8,w:0.22,h:0.14,
+          fill:{color:BRAND},line:{color:BRAND,width:0}
+        });
+        slide.addText("Miembros de "+pt("Junta Directiva"),{
+          x:LX+0.28,y:5.8,w:2.2,h:0.14,
+          fontSize:9,color:GRAY,fontFace:"Arial",valign:"middle"
+        });
+        slide.addShape(pptx.ShapeType.rect,{
+          x:LX,y:6.02,w:0.22,h:0.14,
+          fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}
+        });
+        slide.addText("Miembros de la Administración",{
+          x:LX+0.28,y:6.02,w:2.2,h:0.14,
+          fontSize:9,color:GRAY,fontFace:"Arial",valign:"middle"
+        });
       }
 
       /* ══════ ÁREAS DE FORMACIÓN 5PA ══════ */
       if(rank5.length>0){
         var s5=pptx.addSlide();
         var top5=rank5[0];
-        addLeftCol(s5,top5?"Las áreas prioritarias de formación se concentran en: "+top5.tema.substring(0,100)+".":"Áreas de formación para Directores");
-        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.88,w:0.22,h:0.14,fill:{color:"7823DC"},line:{color:"7823DC",width:0}});
-        s5.addText("Directores",{x:0.75,y:H-0.88,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        s5.addShape(pptx.ShapeType.rect,{x:0.5,y:H-0.7,w:0.22,h:0.14,fill:{color:"C8A5F0"},line:{color:"C8A5F0",width:0}});
-        s5.addText("Alta Gerencia",{x:0.75,y:H-0.7,w:1.0,h:0.14,fontSize:6,color:GRAY,fontFace:"Arial",valign:"middle"});
-        var y5=addSecHeader(s5,"Áreas de formación para Directores","Resultados obtenidos – cada participante escogió 3 áreas de formación","(N= "+N+")");
-        var mx5=rank5[0]?rank5[0].total:1;var bH5=0.2;var g5=0.08;var lW5=3.5;var bX5=RX+lW5+0.06;var bW5=RW-lW5-1.0;
+        addLeftCol(s5,
+          top5
+            ?"Las áreas prioritarias de formación se concentran en: "+top5.tema.substring(0,100)+"."
+            :"Áreas de formación para Directores"
+        );
+        sC_addRoleLegend(s5);
+
+        var y5=addSecHeader(s5,
+          "Áreas de formación para Directores",
+          "Resultados obtenidos – cada participante escogió 3 áreas de formación",
+          "(N= "+N+")"
+        );
+
+        var mx5=rank5[0]?rank5[0].total:1;
+        var bH5=0.28;var g5=0.10;
+        var lW5=3.8;var bX5=RX+lW5+0.12;
+        var bW5=RW-lW5-1.2;
         var uPx5=(umbral/Math.max(mx5,1))*bW5;
+
         rank5.forEach(function(item,i){
-          if(y5+i*(bH5+g5)>H-1.3)return;
-          var rowY=y5+i*(bH5+g5);var isH=item.total>=umbral;
+          if(y5+i*(bH5+g5)>FOOTER_Y-0.8)return;
+          var rowY=y5+i*(bH5+g5);
+          var isH=item.total>=umbral;
           var label=item.tema.length>70?item.tema.substring(0,68)+"...":item.tema;
-          s5.addText(label,{x:RX,y:rowY,w:lW5,h:bH5,fontSize:6.5,bold:isH,color:isH?DARK:GRAY,fontFace:"Arial",align:"right",valign:"middle"});
+          s5.addText(label,{
+            x:RX,y:rowY,w:lW5,h:bH5,
+            fontSize:10,bold:isH,color:isH?DARK:GRAY,
+            fontFace:"Arial",align:"right",valign:"middle"
+          });
           var bLen5=(item.total/Math.max(mx5,1))*bW5;
-          s5.addShape(pptx.ShapeType.rect,{x:bX5,y:rowY,w:bLen5,h:bH5,fill:{color:isH?"7823DC":"C8C8C8"},line:{color:isH?"7823DC":"C8C8C8",width:0}});
-          s5.addText(String(item.total),{x:bX5+bLen5+0.1,y:rowY,w:0.5,h:bH5,fontSize:7,bold:true,color:DARK,fontFace:"Arial",valign:"middle"});
+          s5.addShape(pptx.ShapeType.rect,{
+            x:bX5,y:rowY,w:bLen5,h:bH5,
+            fill:{color:isH?BRAND:"C8A5F0"},
+            line:{color:isH?BRAND:"C8A5F0",width:0}
+          });
+          s5.addText(String(item.total),{
+            x:bX5+bLen5+0.12,y:rowY,w:0.5,h:bH5,
+            fontSize:11,bold:true,color:DARK,fontFace:"Arial",valign:"middle"
+          });
         });
-        s5.addShape(pptx.ShapeType.line,{x:bX5+uPx5,y:y5-0.3,w:0,h:rank5.length*(bH5+g5)+0.3,line:{color:"C8201E",width:1,dashType:"sysDash"}});
-        s5.addText("Umbral: "+umbral+" de "+N,{x:bX5+uPx5+0.04,y:y5-0.15,w:1.0,h:0.14,fontSize:5.5,bold:true,color:"C8201E",fontFace:"Arial"});
+
+        s5.addShape(pptx.ShapeType.line,{
+          x:bX5+uPx5,y:y5-0.15,w:0,
+          h:Math.min(rank5.length*(bH5+g5)+0.15,FOOTER_Y-y5-0.5),
+          line:{color:DARK,width:1,dashType:"sysDash"}
+        });
+        s5.addText("Umbral: "+umbral+" de "+N,{
+          x:bX5+uPx5+0.04,y:y5-0.15,w:1.0,h:0.14,
+          fontSize:8,bold:true,color:DARK,fontFace:"Arial"
+        });
+
         addShell(s5,pn,co.nombre);pn++;
       }
 
       /* ══════ PERFIL NUEVO MIEMBRO 3P ══════ */
       (function(){
         var raw3P=[];
-        p.resps.forEach(function(r){var val=r.answers&&r.answers.abiertas?r.answers.abiertas["3P"]:null;if(val&&typeof val==="string"&&val.trim())raw3P.push({texto:val.trim(),autor:r.respondent?r.respondent.nombre:"Anónimo"})});
+        p.resps.forEach(function(r){
+          var val=r.answers&&r.answers.abiertas?r.answers.abiertas["3P"]:null;
+          if(val&&typeof val==="string"&&val.trim()){
+            raw3P.push({texto:val.trim(),autor:r.respondent?r.respondent.nombre:"Anónimo"});
+          }
+        });
         if(!raw3P.length)return;
+
         var s3=pptx.addSlide();
         addLeftCol(s3,"Los encuestados priorizan perfiles que combinan conocimiento de industria, capacidades financieras y trayectoria estratégica.");
-        var y3=addSecHeader(s3,"Perfil, experiencia y/o capacidades de un nuevo miembro","Resultados obtenidos – Características identificadas","(N= "+N+")");
-        var cols3=2;var colW3=(RW-0.16)/cols3;
+
+        var y3=addSecHeader(s3,
+          "Perfil, experiencia y/o capacidades de un nuevo miembro",
+          "Resultados obtenidos – Características identificadas",
+          "(N= "+N+")"
+        );
+
+        var cols3=2;var colW3=(RW-0.4)/cols3;
         raw3P.forEach(function(item,i){
-          var col=i%cols3;var row=Math.floor(i/cols3);var rowY=y3+row*0.9;if(rowY>H-0.6)return;
+          var col=i%cols3;var row=Math.floor(i/cols3);
+          var rowY=y3+row*1.0;
+          if(rowY>FOOTER_Y-1.0)return;
           var cx=RX+col*(colW3+0.4);
-          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:colW3,h:0.75,fill:{color:"F8F7FC"},line:{color:"E0E0E0",width:0.5}});
-          s3.addShape(pptx.ShapeType.rect,{x:cx,y:rowY,w:0.05,h:0.75,fill:{color:BRAND},line:{color:BRAND,width:0}});
-          s3.addText(item.texto,{x:cx+0.08,y:rowY+0.08,w:colW3-0.14,h:0.5,fontSize:7.5,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
-          s3.addText("— "+item.autor,{x:cx+0.08,y:rowY+0.6,w:colW3-0.14,h:0.12,fontSize:6.5,color:GRAY,fontFace:"Arial"});
+
+          s3.addShape(pptx.ShapeType.rect,{
+            x:cx,y:rowY,w:colW3,h:0.85,
+            fill:{color:"F8F7FC"},line:{color:"E0E0E0",width:0.5}
+          });
+          s3.addShape(pptx.ShapeType.rect,{
+            x:cx,y:rowY,w:0.06,h:0.85,
+            fill:{color:BRAND},line:{color:BRAND,width:0}
+          });
+          s3.addText(item.texto,{
+            x:cx+0.12,y:rowY+0.06,w:colW3-0.2,h:0.55,
+            fontSize:9,color:DARK,fontFace:"Arial",wrap:true,valign:"top"
+          });
+          s3.addText("— "+item.autor,{
+            x:cx+0.12,y:rowY+0.65,w:colW3-0.2,h:0.16,
+            fontSize:8,color:GRAY,fontFace:"Arial"
+          });
         });
+
         addShell(s3,pn,co.nombre);pn++;
       })();
 
@@ -1260,56 +1790,130 @@ function A7Informe(p){
       var famNames=familias.filter(function(f){return f&&f.trim()});
       var sinFam=preguntas.filter(function(q){return!q.familia||!q.familia.trim()});
       var groups=[];
-      famNames.forEach(function(f){var qs=preguntas.filter(function(q){return q.familia===f});if(qs.length)groups.push({nombre:f,preguntas:qs})});
+      famNames.forEach(function(f){
+        var qs=preguntas.filter(function(q){return q.familia===f});
+        if(qs.length)groups.push({nombre:f,preguntas:qs});
+      });
       if(sinFam.length)groups.push({nombre:null,preguntas:sinFam});
+
       if(preguntas.length>0){
-        var PPP=2;var pageGroups=[];var curG=[];
-        groups.forEach(function(g){curG.push(g);if(curG.length>=PPP){pageGroups.push(curG);curG=[]}});
-        if(curG.length)pageGroups.push(curG);
-        pageGroups.forEach(function(pg,pgi){
+        groups.forEach(function(grp,gi){
           var sP=pptx.addSlide();
-          var partL="("+(pgi+1)+"/"+pageGroups.length+")";
-          var yP=addSecHeader(sP,"Preguntas críticas o clave para abordar","Resultados obtenidos – cada participante planteó 3 preguntas  (N= "+N+")  "+partL,"");
-          var colWP=(RW-0.12*(pg.length-1))/pg.length;
-          pg.forEach(function(grp,gi){
-            var colX=RX+gi*(colWP+0.3);var yPI=yP;
-            if(grp.nombre){
-              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP,h:0.25,fill:{color:"F0E8FF"},line:{color:"F0E8FF",width:0}});
-              sP.addText(grp.nombre,{x:colX+0.06,y:yPI,w:colWP-0.08,h:0.25,fontSize:7.5,bold:true,color:BRAND,fontFace:"Arial",valign:"middle"});
-              yPI+=0.3;
-            }
-            grp.preguntas.forEach(function(q,qi){
-              if(yPI>H-0.5)return;
-              sP.addShape(pptx.ShapeType.rect,{x:colX,y:yPI,w:colWP-0.1,h:0.75,fill:{color:"FAFAFA"},line:{color:"DDD8F0",width:0.5}});
-              sP.addText((qi+1)+". "+q.texto,{x:colX+0.06,y:yPI+0.04,w:colWP-0.14,h:0.67,fontSize:7,color:DARK,fontFace:"Arial",wrap:true,valign:"top"});
-              yPI+=0.82;
+          var partL="("+(gi+1)+"/"+groups.length+")";
+
+          addLeftCol(sP,
+            gi===0
+              ?"Las preguntas críticas profundizan en los hallazgos, reforzando el foco en la estrategia corporativa, el plan anual de trabajo y la gestión de riesgos corporativos "+partL
+              :"Preguntas críticas (continuación) "+partL
+          );
+
+          var yP=addSecHeader(sP,
+            "Preguntas críticas o clave para abordar en "+pt("la Junta Directiva"),
+            "Resultados obtenidos – cada participante planteó 3 preguntas",
+            "(N= "+N+")"
+          );
+
+          /* Category header */
+          if(grp.nombre){
+            sP.addShape(pptx.ShapeType.rect,{
+              x:RX,y:yP,w:RW,h:0.32,
+              fill:{color:"F5F5F5"},line:{color:"E0E0E0",width:0.5}
             });
+            sP.addText(grp.nombre,{
+              x:RX+0.12,y:yP,w:RW-0.2,h:0.32,
+              fontSize:11,bold:true,color:DARK,fontFace:"Arial",valign:"middle"
+            });
+            yP+=0.38;
+          }
+
+          /* Questions as numbered list */
+          grp.preguntas.forEach(function(q,qi){
+            if(yP>FOOTER_Y-0.5)return;
+            var qText=(qi+1)+". "+q.texto;
+            /* Estimate height based on text length */
+            var estH=Math.max(0.35,Math.ceil(qText.length/90)*0.22);
+
+            sP.addText(qText,{
+              x:RX+0.12,y:yP,w:RW-0.24,h:estH,
+              fontSize:10,color:DARK,fontFace:"Arial",
+              wrap:true,valign:"top"
+            });
+            yP+=estH+0.06;
           });
+
+          /* Footer note */
+          sP.addText(
+            "*Nota: Resultados basados en "+N+" respuestas recibidas",
+            {x:RX,y:FOOTER_Y-0.22,w:RW,h:0.18,fontSize:7,color:LGRAY,fontFace:"Arial"}
+          );
+
           addShell(sP,pn,co.nombre);pn++;
         });
       }
 
-      /* ══════ CIERRE ══════ */
+      /* ══════ CIERRE / THANK YOU ══════ */
       var sZ=pptx.addSlide();
-      sZ.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W/2+0.3,h:H,fill:{color:WHITE},line:{color:WHITE,width:0}});
-      sZ.addShape(pptx.ShapeType.rect,{x:W/2+0.3,y:0,w:W/2-0.3,h:H,fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}});
-      sZ.addShape(pptx.ShapeType.rtTriangle,{x:W/2+0.6,y:0.4,w:W/2-0.9,h:H-0.8,fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0}});
-      sZ.addText("Thank you",{x:0.8,y:0.5,w:LW,h:0.5,fontSize:20,bold:true,color:BRAND,fontFace:"Arial"});
-      var equipo=co.equipo?co.equipo.split(",").map(function(s){return s.trim()}).filter(Boolean):[];
-      var yTeam=1.2;
-      equipo.forEach(function(nombre,i){
-        var col=i%2;var row=Math.floor(i/2);var tx=0.8+col*3.5;var ty=yTeam+row*0.75;
-        sZ.addText(nombre,{x:tx,y:ty,w:3,h:0.25,fontSize:9,bold:true,color:DARK,fontFace:"Arial"});
-        sZ.addText("Equipo Kearney",{x:tx,y:ty+0.26,w:3,h:0.18,fontSize:8,color:GRAY,fontFace:"Arial"});
+      sZ.addShape(pptx.ShapeType.rect,{
+        x:0,y:0,w:W/2+0.3,h:H,
+        fill:{color:WHITE},line:{color:WHITE,width:0}
       });
-      sZ.addText("Kearney is a leading global management consulting firm. For nearly 100 years, we have been a trusted advisor to C-suites, government bodies, and nonprofits.",{x:0.8,y:H-1.2,w:LW,h:0.7,fontSize:7.5,color:GRAY,fontFace:"Arial",wrap:true});
-      sZ.addText("www.kearney.com",{x:0.8,y:H-0.45,w:2,h:0.2,fontSize:8,bold:true,color:DARK,fontFace:"Arial"});
-      sZ.addText("KEARNEY",{x:0.8,y:H-0.28,w:2,h:0.25,fontSize:16,bold:true,color:DARK,fontFace:"Arial"});
+      sZ.addShape(pptx.ShapeType.rect,{
+        x:W/2+0.3,y:0,w:W/2-0.3,h:H,
+        fill:{color:"F8F7FC"},line:{color:"F8F7FC",width:0}
+      });
+      sZ.addShape(pptx.ShapeType.rtTriangle,{
+        x:W/2+0.6,y:0.4,w:W/2-0.9,h:H-0.8,
+        fill:{color:"E6DAFB"},line:{color:"E6DAFB",width:0}
+      });
+      sZ.addText("Thank you",{
+        x:0.8,y:0.5,w:5,h:0.7,
+        fontSize:28,bold:true,color:BRAND,fontFace:"Arial"
+      });
 
+      var equipo=co.equipo
+        ?co.equipo.split(",").map(function(s){return s.trim()}).filter(Boolean)
+        :[];
+      var yTeam=1.5;
+      equipo.forEach(function(nombre,i){
+        var col=i%2;var row=Math.floor(i/2);
+        var tx=0.8+col*3.5;var ty=yTeam+row*0.85;
+        sZ.addText(nombre,{
+          x:tx,y:ty,w:3,h:0.30,
+          fontSize:11,bold:true,color:DARK,fontFace:"Arial"
+        });
+        sZ.addText("Equipo Kearney",{
+          x:tx,y:ty+0.32,w:3,h:0.22,
+          fontSize:9,color:GRAY,fontFace:"Arial"
+        });
+      });
+
+      sZ.addText(
+        "Kearney is a leading global management consulting firm. For nearly 100 years, we have been a trusted advisor to C-suites, government bodies, and nonprofit organizations.",
+        {x:0.8,y:H-1.8,w:5.5,h:1.0,fontSize:9,color:GRAY,fontFace:"Arial",wrap:true}
+      );
+      sZ.addText("www.kearney.com",{
+        x:0.8,y:H-0.7,w:3,h:0.25,
+        fontSize:9,bold:true,color:DARK,fontFace:"Arial"
+      });
+      sZ.addText("KEARNEY",{
+        x:0.8,y:H-0.4,w:3,h:0.35,
+        fontSize:18,bold:true,color:DARK,fontFace:"Arial"
+      });
+
+      /* ── Generate file ── */
       var filename="Informe_JD_"+(co.nombre||"Evaluacion").replace(/[^a-zA-Z0-9]/g,"_")+"_"+(co.anio||"")+".pptx";
-      pptx.writeFile({fileName:filename}).then(function(){setGenerating(false)}).catch(function(err){alert("Error: "+err.message);setGenerating(false)});
-    }catch(err){console.error("PPTX error:",err);alert("Error generando PPTX: "+err.message);setGenerating(false)}
+      pptx.writeFile({fileName:filename}).then(function(){
+        setGenerating(false);
+      }).catch(function(err){
+        alert("Error: "+err.message);setGenerating(false);
+      });
+    }catch(err){
+      console.error("PPTX error:",err);
+      alert("Error generando PPTX: "+err.message);
+      setGenerating(false);
+    }
   }
+
 
   var sections=[{k:"preguntas",l:"Preguntas Críticas"},{k:"plan",l:"Plan de Acción / Formación"}];
   return(<div>
